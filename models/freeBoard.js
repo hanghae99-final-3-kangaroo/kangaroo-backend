@@ -5,8 +5,8 @@ const {
 module.exports = (sequelize, DataTypes) => {
   class freeBoard extends Model {
     static associate(models) {
-      freeBoard.belongsTo(models.user);
-      freeBoard.hasMany(models.freeComment);
+      freeBoard.belongsTo(models.user,{foreignKey : 'userId'});
+      freeBoard.hasMany(models.freeComment,{foreignKey : 'commentId'});
     }
   };
   freeBoard.init({

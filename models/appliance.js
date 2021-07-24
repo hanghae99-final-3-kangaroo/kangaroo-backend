@@ -5,9 +5,9 @@ const {
 module.exports = (sequelize, DataTypes) => {
   class appliance extends Model {
     static associate(models) {
-      appliance.belongsTo(models.university);
-      appliance.belongsTo(models.user);
-      appliance.belongsTo(models.department);
+      appliance.belongsTo(models.university,{foreignKey : 'univId'});
+      appliance.belongsTo(models.user,{foreignKey : 'userId'});
+      appliance.belongsTo(models.department,{foreignKey : 'deptId'});
     }
   };
   appliance.init({

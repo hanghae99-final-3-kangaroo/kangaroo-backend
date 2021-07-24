@@ -5,8 +5,8 @@ const {
 module.exports = (sequelize, DataTypes) => {
   class university extends Model {
     static associate(models) {
-        university.hasMany(models.appliance);
-        university.hasMany(models.department);
+        university.hasMany(models.appliance,{foreignKey : 'applyId'});
+        university.hasMany(models.department,{foreignKey : 'deptId'});
     }
   };
   university.init({

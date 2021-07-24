@@ -5,9 +5,9 @@ const {
 module.exports = (sequelize, DataTypes) => {
   class user extends Model {
     static associate(models) {
-        user.hasMany(models.freeBoard);
-        user.hasMany(models.freeComment);
-        user.hasMany(models.appliance);
+        user.hasMany(models.freeBoard,{foreignKey : 'postId'});
+        user.hasMany(models.freeComment,{foreignKey : 'commentId'});
+        user.hasMany(models.appliance,{foreignKey : 'applyId'});
     }
   };
   user.init({
