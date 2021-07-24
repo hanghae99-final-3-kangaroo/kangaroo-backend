@@ -1,10 +1,10 @@
 const express = require('express') //express를 쓴다
 const dotenv = require('dotenv');
 const app = express()
-const port = 3000// port 는 3000번
 
 dotenv.config();
 
+app.set('port', process.env.PORT || 3000);
 
 const { sequelize } = require('./models');
 app.use(express.urlencoded({ extended: false }))
@@ -17,13 +17,21 @@ sequelize.sync({ force: false })
     .catch((error) => {
         console.error(error);
     });
-const userRouter = require("./routers/user");
-app.use("/api", [userRouter]);
 
-app.use((req, res, next) => {
-  next();
+const userRouter = require("./routers/user");
+const boardRouter = require("./routers/board");
+const universityRouter = require("./routers/university");
+const adminRouter = require("./routers/admin");
+
+app.use("/api", [userRouter]);
+app.use("/api", [boardRouter]);
+app.use("/api", [universityRouter]);
+app.use("/admin", [adminRouter]);
+
+app.get('/', (req, res) => {
+  res.send('Hello, Kangaroo');
 });
 
-app.listen(port, () => {
-  console.log(`listening at http://localhost:${port}`)
+app.listen(app.get('port'), () => {
+  console.log(`listening at http://localhost:${app.get('port')}`)
 })
