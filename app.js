@@ -25,11 +25,13 @@ const userRouter = require("./routers/user");
 const boardRouter = require("./routers/board");
 const universityRouter = require("./routers/university");
 const adminRouter = require("./routers/admin");
+const sampleRouter = require("./routers/sample");
 
 app.use("/api", [userRouter]);
 app.use("/api", [boardRouter]);
 app.use("/api", [universityRouter]);
 app.use("/admin", [adminRouter]);
+app.use("/test", [sampleRouter]);
 
 app.get("/", (req, res) => {
   res.send("Hello, Kangaroo");
