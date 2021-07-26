@@ -15,7 +15,7 @@ app.use(express.json());
 sequelize
   .sync({ force: false })
   .then(() => {
-    console.log("디비비빅마마가렛트랜스포머피의법칙");
+    console.log("데이터베이스 연결 성공!");
   })
   .catch((error) => {
     console.error(error);
