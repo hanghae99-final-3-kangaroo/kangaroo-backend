@@ -160,7 +160,7 @@ passport.serializeUser(function (user, done) {
 
 passport.deserializeUser(async function (id, done) {
   console.log("deserializeUser id ", id);
-  var userinfo = await user.findOne({
+  let userinfo = await user.findOne({
     where: { user_id: id },
   });
   done(null, userinfo);

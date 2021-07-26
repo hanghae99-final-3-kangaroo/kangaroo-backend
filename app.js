@@ -16,7 +16,7 @@ app.use(express.json());
 sequelize
   .sync({ force: false })
   .then(() => {
-    console.log("데이터베이스 연결 성공!");
+    console.log("데이터베이스페이스오페라면");
   })
   .catch((error) => {
     console.error(error);
