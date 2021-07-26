@@ -1,6 +1,7 @@
 const express = require("express"); // express를 쓴다
 const dotenv = require("dotenv");
-
+const passport = require("passport");
+const session = require("express-session");
 const app = express();
 
 dotenv.config();
@@ -20,6 +21,11 @@ sequelize
   .catch((error) => {
     console.error(error);
   });
+app.use(
+  session({ secret: "비밀코드", resave: true, saveUninitialized: false })
+);
+app.use(passport.initialize());
+app.use(passport.session());
 
 const userRouter = require("./routers/user");
 const freeBoardRouter = require("./routers/freeBoard");
