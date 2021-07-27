@@ -9,7 +9,7 @@ dotenv.config();
 app.set("port", process.env.PORT || 3000);
 
 const cors = require("cors");
-app.use(cors({ origin: "*", credentials: true }));
+app.use(cors({ origin: true, credentials: true }));
 
 const { sequelize } = require("./models");
 
