@@ -71,5 +71,27 @@ router.get("/sample", async (req, res, next) => {
     res.status(400).send(err);
   }
 });
-
+router.get("/sample2", async (req, res, next) => {
+  try {
+    await country.create({
+      name: "베트남",
+    });
+    await country.create({
+      name: "호주",
+    });
+    await country.create({
+      name: "미국",
+    });
+    await country.create({
+      name: "캐나다",
+    });
+    await country.create({
+      name: "영국",
+    });
+    res.status(200).send("가상 데이터 생성 성공");
+  } catch (err) {
+    console.error(err);
+    res.status(400).send(err);
+  }
+});
 module.exports = router;
