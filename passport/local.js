@@ -1,6 +1,7 @@
 const passport = require("passport");
 const LocalStrategy = require("passport-local").Strategy;
 const GoogleStrategy = require("passport-google-oauth20");
+const KakaoStrategy = require("passport-kakao").Strategy;
 const { user } = require("../models");
 passport.use(
   new LocalStrategy(
@@ -43,17 +44,39 @@ passport.use(
       const provider = "google";
       let userInfo;
       userInfo = await user.findOne({ where: { provider, email } });
-
       if (!userInfo) {
         await user.create({
           provider,
           email,
           nickname,
         });
-
         userInfo = await user.findOne({ where: { provider, email } });
       }
-
+      return done(null, userInfo);
+    }
+  )
+);
+passport.use(
+  "kakao",
+  new KakaoStrategy(
+    {
+      clientID: "4d6708ac100427bb2f8cca86b4352243",
+      callbackURL: "/api/kakao/callback", // 위에서 설정한 Redirect URI
+    },
+    async (accessToken, refreshToken, profile, done) => {
+      const email = profile["_json"].kakao_account.email;
+      const nickname = profile.displayName;
+      const provider = "kakao";
+      let userInfo;
+      userInfo = await user.findOne({ where: { provider, email } });
+      if (!userInfo) {
+        await user.create({
+          provider,
+          email,
+          nickname,
+        });
+        userInfo = await user.findOne({ where: { provider, email } });
+      }
       return done(null, userInfo);
     }
   )
