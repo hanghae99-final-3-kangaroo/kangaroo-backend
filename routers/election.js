@@ -2,8 +2,11 @@ const express = require("express");
 const { election, university, country, vote } = require("../models");
 const router = express.Router(); // 라우터라고 선언한다.
 const Sequelize = require("sequelize");
+const { checkLogin } = require("./user.js");
 
 router.post("/", async (req, res) => {
+  const { user_id } = req.params;
+  console.log(user_id);
   const {
     name,
     content,
