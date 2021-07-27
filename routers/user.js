@@ -118,13 +118,13 @@ router.delete("/user/:user_id", checkLogin, async (req, res) => {
 });
 router.get("/logout", async (req, res, next) => {
   req.logout();
-  res.send("logout succeed");
+  res.send({ message: "logout succeed" });
 });
 router.post(
   "/login",
   passport.authenticate("local", { failureRedirect: "/fail" }),
   function (req, res) {
-    res.redirect("/");
+    res.send({ message: "login succeed" });
   }
 );
 
