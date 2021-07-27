@@ -13,9 +13,30 @@ const router = express.Router(); // 라우터라고 선언한다.
 
 const passport = require("passport");
 const LocalStrategy = require("passport-local").Strategy;
+
 router.post("/user", async (req, res) => {
   const { email, password, nickname } = req.body;
   try {
+    const dupEmail = await user.findOne({
+      where: { email },
+    });
+    if (dupEmail) {
+      res.status(403).send({
+        ok: false,
+        message: "이메일 중복",
+      });
+      return;
+    }
+    const dupNick = await user.findOne({
+      where: { nickname },
+    });
+    if (dupNick) {
+      res.status(403).send({
+        ok: false,
+        message: "닉네임 중복",
+      });
+      return;
+    }
     const createdUser = await user.create({
       email,
       password,
@@ -29,15 +50,21 @@ router.post("/user", async (req, res) => {
     console.error(err);
     res.status(400).send({
       ok: false,
-      message: `${err}`,
+      message: `${err} : 회원가입 실패`,
     });
   }
 });
 
 router.get("/user/:user_id", checkLogin, async (req, res, next) => {
-  console.log(req.user);
   const { user_id } = req.params;
   try {
+    if (req.user.user_id != user_id) {
+      res.status(401).send({
+        ok: false,
+        message: "Unauthorized",
+      });
+      return;
+    }
     const myInfo = await user.findOne({
       where: { user_id },
       include: [
@@ -53,7 +80,7 @@ router.get("/user/:user_id", checkLogin, async (req, res, next) => {
     console.error(err);
     res.status(400).send({
       ok: false,
-      message: `${err}`,
+      message: `${err} : 유저 정보 조회 실패`,
     });
   }
 });
@@ -62,6 +89,13 @@ router.put("/user/:user_id", checkLogin, async (req, res) => {
   const { user_id } = req.params;
   const { email, password, nickname } = req.body;
   try {
+    if (req.user.user_id != user_id) {
+      res.status(401).send({
+        ok: false,
+        message: "Unauthorized",
+      });
+      return;
+    }
     await user.update(
       {
         email,
@@ -79,7 +113,7 @@ router.put("/user/:user_id", checkLogin, async (req, res) => {
     console.error(err);
     res.status(400).send({
       ok: false,
-      message: `${err}`,
+      message: `${err} : 유저 정보 업데이트 실패`,
     });
   }
 });
@@ -87,6 +121,13 @@ router.put("/user/:user_id", checkLogin, async (req, res) => {
 router.delete("/user/:user_id", checkLogin, async (req, res) => {
   const { user_id } = req.params;
   try {
+    if (req.user.user_id != user_id) {
+      res.status(401).send({
+        ok: false,
+        message: "Unauthorized",
+      });
+      return;
+    }
     await free_board.destroy({
       where: { user_id },
     });
@@ -112,7 +153,7 @@ router.delete("/user/:user_id", checkLogin, async (req, res) => {
     console.error(err);
     res.status(400).send({
       ok: false,
-      message: `${err}`,
+      message: `${err} : 탈퇴 실패`,
     });
   }
 });
@@ -171,11 +212,9 @@ passport.deserializeUser(async function (id, done) {
 
 function checkLogin(req, res, next) {
   if (req.user) {
-    console.log("login checked");
     next();
   } else {
-    console.log("login first");
-    res.send("로그인 안하셨는데요?");
+    res.status(401).send({ ok: false, message: "로그인 안하셨는데요?" });
   }
 }
 
