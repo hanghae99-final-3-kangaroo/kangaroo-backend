@@ -63,6 +63,7 @@ router.post("/user", async (req, res) => {
 });
 
 router.get("/user/:user_id", checkLogin, async (req, res, next) => {
+  req.user;
   const { user_id } = req.params;
   try {
     if (req.user.user_id != user_id) {
@@ -175,7 +176,7 @@ router.post(
   "/login",
   passport.authenticate("local", { failureRedirect: "/api/fail" }),
   function (req, res) {
-    res.send({ message: "login succeed" });
+    res.send({ user_id: req.user.user_id, message: "login succeed" });
   }
 );
 router.get(
@@ -188,7 +189,16 @@ router.get(
   "/google/callback",
   passport.authenticate("google"),
   function (req, res) {
-    res.send({ message: "login succeed" });
+    res.send({ message: "google login succeed" });
+  }
+);
+router.get("/kakao", passport.authenticate("kakao"));
+
+router.get(
+  "/kakao/callback",
+  passport.authenticate("kakao"),
+  function (req, res) {
+    res.send({ message: "kakao login succeed" });
   }
 );
 module.exports = router;
