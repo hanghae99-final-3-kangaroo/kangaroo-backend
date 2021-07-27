@@ -189,7 +189,7 @@ router.get(
   "/google/callback",
   passport.authenticate("google"),
   function (req, res) {
-    res.send({ message: "google login succeed" });
+    res.send({ user_id: req.user.user_id, message: "google login succeed" });
   }
 );
 router.get("/kakao", passport.authenticate("kakao"));
@@ -198,7 +198,23 @@ router.get(
   "/kakao/callback",
   passport.authenticate("kakao"),
   function (req, res) {
-    res.send({ message: "kakao login succeed" });
+    res.send({ user_id: req.user.user_id, message: "kakao login succeed" });
+  }
+);
+
+router.get(
+  "/facebook",
+  passport.authenticate("facebook", {
+    authType: "rerequest",
+    scope: ["public_profile", "email"],
+  })
+);
+
+router.get(
+  "/facebook/callback",
+  passport.authenticate("facebook"),
+  function (req, res) {
+    res.send({ user_id: req.user.user_id, message: "facebook login succeed" });
   }
 );
 module.exports = router;
