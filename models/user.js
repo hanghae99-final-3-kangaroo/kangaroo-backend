@@ -31,14 +31,12 @@ module.exports = (sequelize, DataTypes) => {
         allowNull: false,
         type: Sequelize.STRING,
       },
-      password: {
-        allowNull: false,
-        type: Sequelize.STRING,
-      },
+      password: Sequelize.STRING,
       school_auth: Sequelize.BOOLEAN,
       school_email: Sequelize.STRING,
       country_id: Sequelize.INTEGER,
       univ_id: Sequelize.INTEGER,
+      provider: Sequelize.STRING,
     },
     {
       sequelize,

@@ -14,10 +14,18 @@ const passport = require("passport");
 const checkLogin = require("../passport/local");
 router.post("/user", async (req, res) => {
   const { email, password, nickname } = req.body;
+  const provider = "local";
   try {
     const dupEmail = await user.findOne({
       where: { email },
     });
+    if (!password) {
+      res.status(403).send({
+        ok: false,
+        message: "패스워드 미입력",
+      });
+      return;
+    }
     if (dupEmail) {
       res.status(403).send({
         ok: false,
@@ -39,6 +47,7 @@ router.post("/user", async (req, res) => {
       email,
       password,
       nickname,
+      provider,
     });
     res.status(200).send({
       ok: true,
@@ -169,5 +178,17 @@ router.post(
     res.send({ message: "login succeed" });
   }
 );
-
+router.get(
+  "/google",
+  passport.authenticate("google", {
+    scope: ["profile", "email"],
+  })
+);
+router.get(
+  "/google/callback",
+  passport.authenticate("google"),
+  function (req, res) {
+    res.send({ message: "login succeed" });
+  }
+);
 module.exports = router;
