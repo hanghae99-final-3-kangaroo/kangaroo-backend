@@ -116,7 +116,10 @@ router.delete("/user/:user_id", checkLogin, async (req, res) => {
     });
   }
 });
-
+router.get("/logout", async (req, res, next) => {
+  req.logout();
+  res.send("logout succeed");
+});
 router.post(
   "/login",
   passport.authenticate("local", { failureRedirect: "/fail" }),
