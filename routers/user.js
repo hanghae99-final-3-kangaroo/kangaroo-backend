@@ -141,7 +141,7 @@ passport.use(
         });
         if (!result)
           return done(null, false, { message: "존재하지않는 아이디요" });
-        if (email == result.password) {
+        if (password == result.password) {
           return done(null, result);
         } else {
           return done(null, false, { message: "비번틀렸어요" });
@@ -160,7 +160,7 @@ passport.serializeUser(function (user, done) {
 
 passport.deserializeUser(async function (id, done) {
   console.log("deserializeUser id ", id);
-  let userinfo = await user.findOne({
+  var userinfo = await user.findOne({
     where: { user_id: id },
   });
   done(null, userinfo);
