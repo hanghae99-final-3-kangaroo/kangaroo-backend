@@ -159,10 +159,12 @@ router.get("/logout", async (req, res, next) => {
   req.logout();
   res.send({ message: "logout succeed" });
 });
-
+router.get("/fail", async (req, res, next) => {
+  res.status(400).send({ message: "login failed" });
+});
 router.post(
   "/login",
-  passport.authenticate("local", { failureRedirect: "/fail" }),
+  passport.authenticate("local", { failureRedirect: "/api/fail" }),
   function (req, res) {
     res.send({ message: "login succeed" });
   }
