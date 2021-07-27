@@ -11,14 +11,6 @@ const router = express.Router(); // 라우터라고 선언한다.
 // free_board 글 작성
 router.post("/post", async (req, res, next) => {
   try {
-    // const { user_id } = req.user;
-
-    // if (user_id !== null) {
-    //   return res
-    //     .status(401)
-    //     .send({ ok: false, message: "로그인 먼저 해 주세요" });
-    // }
-
     const { user_id, title, category, content, country_id } = req.body;
 
     const result = await free_board.create({
@@ -47,7 +39,6 @@ router.post("/post", async (req, res, next) => {
 router.get("/post", async (req, res, next) => {
   try {
     const result = await free_board.findAll({});
-    console.log(result);
     res.status(200).send({
       result,
       ok: true,
@@ -152,6 +143,9 @@ router.delete("/post/:post_id", async (req, res, next) => {
     await free_board.destroy({
       where: { post_id },
     });
+    await free_comment.destroy({
+      where: { post_id },
+    });
 
     res.status(200).send({
       ok: true,
@@ -168,7 +162,7 @@ router.delete("/post/:post_id", async (req, res, next) => {
 
 // Comment Part
 
-// Comment 작성
+// free_comment 작성
 router.post("/comment", async (req, res, next) => {
   try {
     const { user_id, post_id, content } = req.body;
@@ -193,7 +187,7 @@ router.post("/comment", async (req, res, next) => {
   }
 });
 
-// Comment 조회
+// free_comment 조회
 router.get("/comment/:post_id", async (req, res, next) => {
   try {
     const { post_id } = req.params;
@@ -222,7 +216,7 @@ router.get("/comment/:post_id", async (req, res, next) => {
   }
 });
 
-// Comment 수정
+// free_comment 수정
 router.put("/comment/:comment_id", async (req, res, next) => {
   try {
     const { comment_id } = req.params;
@@ -231,7 +225,6 @@ router.put("/comment/:comment_id", async (req, res, next) => {
     const { user_id: commentUserId } = await free_comment.findOne({
       where: { comment_id },
     });
-    console.log(commentUserId);
 
     if (user_id != commentUserId) {
       return res.status(401).send({ ok: false, message: "작성자가 아닙니다" });
@@ -259,10 +252,26 @@ router.put("/comment/:comment_id", async (req, res, next) => {
   }
 });
 
-// Comment 삭제
-router.post("/comment", async (req, res, next) => {
+// free_comment 삭제
+router.delete("/comment/:comment_id", async (req, res, next) => {
   try {
-    const { user_id, content } = req.body;
+    const { comment_id } = req.params;
+    const { user_id } = req.body;
+
+    const { user_id: commentUserId } = await free_comment.findOne({
+      where: { comment_id },
+    });
+
+    if (user_id != commentUserId) {
+      return res.status(401).send({ ok: false, message: "작성자가 아닙니다" });
+    }
+
+    await free_comment.destroy({
+      where: {
+        comment_id,
+      },
+    });
+
     res.status(200).send({
       ok: true,
       message: "게시글 삭제 성공",
