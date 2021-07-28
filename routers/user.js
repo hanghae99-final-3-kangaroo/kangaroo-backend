@@ -181,7 +181,7 @@ router.post(
   }),
   function (req, res) {
     const user = req.user;
-    const token = jwt.sign({ userId: user.user_id }, "hanghaekangaroo");
+    const token = jwt.sign({ user_id: user.user_id }, "hanghaekangaroo");
 
     res.json({ message: "success", token: token, user: user.nickname });
   }
