@@ -6,7 +6,7 @@ const MySQLStore = require("express-mysql-session")(session);
 const app = express();
 
 dotenv.config();
-
+app.set("trust proxy", 1);
 app.set("port", process.env.PORT || 3000);
 
 const cors = require("cors");
@@ -27,15 +27,20 @@ sequelize
   });
 app.use(
   session({
-    // 옵션은 반드시 넣어줘야 한다.
-    resave: false, // 매번 세션 강제 저장
-    saveUninitialized: false, // 빈 값도 저장
-    secret: "process.env.COOKIE_SECRET", // cookie 암호화 키. dotenv 라이브러리로 감춤
+    secret: "비밀코드",
+    resave: true,
+    saveUninitialized: false,
     cookie: {
       httpOnly: true, // javascript로 cookie에 접근하지 못하게 하는 옵션
       secure: false, // https 프로토콜만 허락하는 지 여부
       sameSite: "none",
     },
+    store: new MySQLStore({
+      host: "127.0.0.1",
+      user: "root",
+      password: "1234",
+      database: "kangaroo",
+    }),
   })
 );
 app.use(passport.initialize());
