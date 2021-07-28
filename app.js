@@ -2,6 +2,7 @@ const express = require("express"); // express를 쓴다
 const dotenv = require("dotenv");
 const passport = require("passport");
 const session = require("express-session");
+const MySQLStore = require("express-mysql-session")(session);
 const app = express();
 
 dotenv.config();
@@ -31,8 +32,15 @@ app.use(
     saveUninitialized: false,
     cookie: {
       sameSite: "none",
-      secure: true,
+      secure: false,
+      httpOnly: true,
     },
+    store: new MySQLStore({
+      host: "127.0.0.1",
+      user: "root",
+      password: "1234",
+      database: "kangaroo",
+    }),
   })
 );
 app.use(passport.initialize());
