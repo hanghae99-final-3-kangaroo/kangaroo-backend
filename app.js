@@ -4,6 +4,7 @@ const passport = require("passport");
 const session = require("express-session");
 const app = express();
 
+const passportConfig = require("./passport");
 dotenv.config();
 app.set("port", process.env.PORT || 3000);
 
@@ -23,6 +24,7 @@ sequelize
   .catch((error) => {
     console.error(error);
   });
+passportConfig();
 app.use(
   session({ secret: "secret key", resave: false, saveUninitialized: false })
 );

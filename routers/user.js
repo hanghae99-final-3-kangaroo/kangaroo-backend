@@ -13,6 +13,7 @@ const {
 const router = express.Router(); // 라우터라고 선언한다.
 const passport = require("passport");
 const authMiddleware = require("../middlewares/auth-middleware");
+
 router.post("/user", async (req, res) => {
   const { email, password, nickname } = req.body;
   const provider = "local";
@@ -177,7 +178,7 @@ router.post(
   "/login",
   passport.authenticate("local", { failureRedirect: "/api/fail" }),
   function (req, res) {
-    const user = res.locals.user;
+    const user = req.user;
     const token = jwt.sign({ userId: user.user_id }, "hanghaekangaroo");
 
     res.json({ message: "success", token: token, user: user.nickname });
