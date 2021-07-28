@@ -25,7 +25,15 @@ sequelize
     console.error(error);
   });
 app.use(
-  session({ secret: "비밀코드", resave: true, saveUninitialized: false })
+  session({
+    secret: "비밀코드",
+    resave: true,
+    saveUninitialized: false,
+    cookie: {
+      sameSite: "none",
+      secure: true,
+    },
+  })
 );
 app.use(passport.initialize());
 app.use(passport.session());
