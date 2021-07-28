@@ -8,7 +8,8 @@
       "timezone": "+09:00",
       "define": {
         "freezeTableName": true
-      }
+      },
+      "logging": false
     },
     "test": {
       "username": "root",
@@ -19,7 +20,8 @@
       "timezone": "+09:00",
       "define": {
         "freezeTableName": true
-      }
+      },
+      "logging": false
     },
     "production": {
       "username": "root",
@@ -30,6 +32,7 @@
       "timezone": "+09:00",
       "define": {
         "freezeTableName": true
-      }
+      },
+      "logging": false
     }
   }
