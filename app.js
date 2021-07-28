@@ -34,6 +34,7 @@ app.use(
     cookie: {
       httpOnly: true, // javascript로 cookie에 접근하지 못하게 하는 옵션
       secure: false, // https 프로토콜만 허락하는 지 여부
+      sameSite: "none",
     },
   })
 );

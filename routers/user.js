@@ -195,6 +195,7 @@ router.post("/login", (req, res, next) => {
       // user.toJSON() 하지 않으면 에러 발생
       // toJSON()을 붙여주는 이유는 서버로부터 전달받은 데이터를 변형하기 때문임.
       delete filteredUser.password; // 서버로부터 전달받은 데이터를 변형하지 않는다면
+      res.header("Access-Control-Allow-Credentials", "true");
       return res.json(filteredUser); // toJSON()을 붙이지 않고 바로 응답하여도 무방
     });
   })(req, res, next);
