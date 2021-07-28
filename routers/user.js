@@ -1,4 +1,5 @@
 const express = require("express");
+const jwt = require("jsonwebtoken");
 const {
   user,
   university,
@@ -11,7 +12,7 @@ const {
 } = require("../models");
 const router = express.Router(); // 라우터라고 선언한다.
 const passport = require("passport");
-const checkLogin = require("../passport/local");
+const authMiddleware = require("../middlewares/auth-middleware");
 router.post("/user", async (req, res) => {
   const { email, password, nickname } = req.body;
   const provider = "local";
@@ -62,11 +63,11 @@ router.post("/user", async (req, res) => {
   }
 });
 
-router.get("/user/:user_id", checkLogin, async (req, res, next) => {
-  req.user;
+router.get("/user/:user_id", authMiddleware, async (req, res, next) => {
   const { user_id } = req.params;
+  console.log(res.locals.user);
   try {
-    if (req.user.user_id != user_id) {
+    if (res.locals.user.user_id != user_id) {
       res.status(401).send({
         ok: false,
         message: "Unauthorized",
@@ -93,11 +94,11 @@ router.get("/user/:user_id", checkLogin, async (req, res, next) => {
   }
 });
 
-router.put("/user/:user_id", checkLogin, async (req, res) => {
+router.put("/user/:user_id", authMiddleware, async (req, res) => {
   const { user_id } = req.params;
   const { email, password, nickname } = req.body;
   try {
-    if (req.user.user_id != user_id) {
+    if (res.locals.user.user_id != user_id) {
       res.status(401).send({
         ok: false,
         message: "Unauthorized",
@@ -126,10 +127,10 @@ router.put("/user/:user_id", checkLogin, async (req, res) => {
   }
 });
 
-router.delete("/user/:user_id", checkLogin, async (req, res) => {
+router.delete("/user/:user_id", authMiddleware, async (req, res) => {
   const { user_id } = req.params;
   try {
-    if (req.user.user_id != user_id) {
+    if (res.locals.user.user_id != user_id) {
       res.status(401).send({
         ok: false,
         message: "Unauthorized",
@@ -172,35 +173,16 @@ router.get("/logout", async (req, res, next) => {
 router.get("/fail", async (req, res, next) => {
   res.status(400).send({ message: "login failed" });
 });
-router.post("/login", (req, res, next) => {
-  // POST /api/user/login
-  passport.authenticate("local", (err, user, info) => {
-    // (err, user, info) 는 passport의 done(err, data, logicErr) 세 가지 인자
-    if (err) {
-      // 서버에 에러가 있는 경우
-      console.error(err);
-      next(err);
-    }
-    if (info) {
-      // 로직 상 에러가 있는 경우
-      return res.status(401).send(info.reason);
-    }
-    return req.login(user, (loginErr) => {
-      // req.login() 요청으로 passport.serializeUser() 실행
-      if (loginErr) {
-        return next(loginErr);
-      }
-      const filteredUser = Object.assign({}, user.toJSON());
-      // user 객체는 sequelize 객체이기 때문에 순수한 JSON으로 만들기 위해 user.toJSON()
-      // user.toJSON() 하지 않으면 에러 발생
-      // toJSON()을 붙여주는 이유는 서버로부터 전달받은 데이터를 변형하기 때문임.
-      delete filteredUser.password; // 서버로부터 전달받은 데이터를 변형하지 않는다면
-      res.header("Access-Control-Allow-Credentials", "true");
-      return res.json(filteredUser); // toJSON()을 붙이지 않고 바로 응답하여도 무방
-    });
-  })(req, res, next);
-  // 미들웨어(router) 내의 미들웨어(passport)에는 (req, res, next)를 붙입니다.
-});
+router.post(
+  "/login",
+  passport.authenticate("local", { failureRedirect: "/api/fail" }),
+  function (req, res) {
+    const user = res.locals.user;
+    const token = jwt.sign({ userId: user.user_id }, "hanghaekangaroo");
+
+    res.json({ message: "success", token: token, user: user.nickname });
+  }
+);
 router.get(
   "/google",
   passport.authenticate("google", {
@@ -211,7 +193,10 @@ router.get(
   "/google/callback",
   passport.authenticate("google"),
   function (req, res) {
-    res.send({ user_id: req.user.user_id, message: "google login succeed" });
+    res.send({
+      user_id: res.locals.user.user_id,
+      message: "google login succeed",
+    });
   }
 );
 router.get("/kakao", passport.authenticate("kakao"));
@@ -220,7 +205,10 @@ router.get(
   "/kakao/callback",
   passport.authenticate("kakao"),
   function (req, res) {
-    res.send({ user_id: req.user.user_id, message: "kakao login succeed" });
+    res.send({
+      user_id: res.locals.user.user_id,
+      message: "kakao login succeed",
+    });
   }
 );
 
@@ -236,7 +224,10 @@ router.get(
   "/facebook/callback",
   passport.authenticate("facebook"),
   function (req, res) {
-    res.send({ user_id: req.user.user_id, message: "facebook login succeed" });
+    res.send({
+      user_id: res.locals.user.user_id,
+      message: "facebook login succeed",
+    });
   }
 );
 module.exports = router;

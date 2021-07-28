@@ -2,10 +2,10 @@ const express = require("express");
 const { election, university, country, vote } = require("../models");
 const router = express.Router(); // 라우터라고 선언한다.
 const Sequelize = require("sequelize");
-const checkLogin = require("../passport/local");
+const authMiddleware = require("../middlewares/auth-middleware");
 
-router.post("/", checkLogin, async (req, res) => {
-  const { user_id } = req.user;
+router.post("/", authMiddleware, async (req, res) => {
+  const { user_id } = res.locals.user;
   const {
     name,
     content,
@@ -62,8 +62,8 @@ router.post("/", checkLogin, async (req, res) => {
   }
 });
 
-router.get("/:election_id", checkLogin, async (req, res, next) => {
-  const { univ_id } = req.user;
+router.get("/:election_id", authMiddleware, async (req, res, next) => {
+  const { univ_id } = res.locals.user;
   const { election_id } = req.params;
   try {
     const myElection = await election.findOne({
@@ -99,8 +99,8 @@ router.get("/:election_id", checkLogin, async (req, res, next) => {
   }
 });
 
-router.put("/:election_id", checkLogin, async (req, res) => {
-  const { user_id } = req.user;
+router.put("/:election_id", authMiddleware, async (req, res) => {
+  const { user_id } = res.locals.user;
   const { election_id } = req.params;
   const {
     name,
@@ -200,9 +200,9 @@ router.delete("/:election_id", async (req, res) => {
   }
 });
 
-router.post("/vote/:election_id", checkLogin, async (req, res) => {
+router.post("/vote/:election_id", authMiddleware, async (req, res) => {
   const { vote_num } = req.body;
-  const { user_id, univ_id } = req.user;
+  const { user_id, univ_id } = res.locals.user;
   const { election_id } = req.params;
   try {
     const myElection = await election.findOne({ where: { election_id } });
@@ -255,9 +255,9 @@ router.post("/vote/:election_id", checkLogin, async (req, res) => {
   }
 });
 
-router.get("/:election_id/result", checkLogin, async (req, res) => {
+router.get("/:election_id/result", authMiddleware, async (req, res) => {
   const { election_id } = req.params;
-  const { univ_id } = req.user;
+  const { univ_id } = res.locals.user;
   try {
     const myElection = await election.findOne({ where: { election_id } });
     if (univ_id == null) {
