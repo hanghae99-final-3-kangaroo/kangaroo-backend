@@ -172,13 +172,34 @@ router.get("/logout", async (req, res, next) => {
 router.get("/fail", async (req, res, next) => {
   res.status(400).send({ message: "login failed" });
 });
-router.post(
-  "/login",
-  passport.authenticate("local", { failureRedirect: "/api/fail" }),
-  function (req, res) {
-    res.send({ user_id: req.user.user_id, message: "login succeed" });
-  }
-);
+router.post("/login", (req, res, next) => {
+  // POST /api/user/login
+  passport.authenticate("local", (err, user, info) => {
+    // (err, user, info) 는 passport의 done(err, data, logicErr) 세 가지 인자
+    if (err) {
+      // 서버에 에러가 있는 경우
+      console.error(err);
+      next(err);
+    }
+    if (info) {
+      // 로직 상 에러가 있는 경우
+      return res.status(401).send(info.reason);
+    }
+    return req.login(user, (loginErr) => {
+      // req.login() 요청으로 passport.serializeUser() 실행
+      if (loginErr) {
+        return next(loginErr);
+      }
+      const filteredUser = Object.assign({}, user.toJSON());
+      // user 객체는 sequelize 객체이기 때문에 순수한 JSON으로 만들기 위해 user.toJSON()
+      // user.toJSON() 하지 않으면 에러 발생
+      // toJSON()을 붙여주는 이유는 서버로부터 전달받은 데이터를 변형하기 때문임.
+      delete filteredUser.password; // 서버로부터 전달받은 데이터를 변형하지 않는다면
+      return res.json(filteredUser); // toJSON()을 붙이지 않고 바로 응답하여도 무방
+    });
+  })(req, res, next);
+  // 미들웨어(router) 내의 미들웨어(passport)에는 (req, res, next)를 붙입니다.
+});
 router.get(
   "/google",
   passport.authenticate("google", {
