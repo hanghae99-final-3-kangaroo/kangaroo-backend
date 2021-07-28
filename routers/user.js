@@ -66,7 +66,6 @@ router.post("/user", async (req, res) => {
 
 router.get("/user/:user_id", authMiddleware, async (req, res, next) => {
   const { user_id } = req.params;
-  console.log(res.locals.user);
   try {
     if (res.locals.user.user_id != user_id) {
       res.status(401).send({
