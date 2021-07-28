@@ -175,7 +175,10 @@ router.get("/fail", async (req, res, next) => {
 });
 router.post(
   "/login",
-  passport.authenticate("local", { failureRedirect: "/api/fail" }),
+  passport.authenticate("local", {
+    session: false,
+    failureRedirect: "/api/fail",
+  }),
   function (req, res) {
     const user = req.user;
     const token = jwt.sign({ userId: user.user_id }, "hanghaekangaroo");
