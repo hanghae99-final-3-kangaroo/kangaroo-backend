@@ -14,7 +14,7 @@ router.post(
   "/login",
   passport.authenticate("local", {
     session: false,
-    failureRedirect: "/api/fail",
+    failureRedirect: "/auth/fail",
   }),
   function (req, res) {
     const user = req.user;
@@ -26,6 +26,8 @@ router.post(
 router.get(
   "/google",
   passport.authenticate("google", {
+    session: false,
+    failureRedirect: "/auth/fail",
     scope: ["profile", "email"],
   })
 );
@@ -41,7 +43,13 @@ router.get(
     });
   }
 );
-router.get("/kakao", passport.authenticate("kakao"));
+router.get(
+  "/kakao",
+  passport.authenticate("kakao", {
+    session: false,
+    failureRedirect: "/auth/fail",
+  })
+);
 
 router.get(
   "/kakao/callback",
@@ -66,7 +74,10 @@ router.get(
 
 router.get(
   "/facebook/callback",
-  passport.authenticate("facebook"),
+  passport.authenticate("facebook", {
+    session: false,
+    failureRedirect: "/auth/fail",
+  }),
   function (req, res) {
     const user = req.user;
     const token = jwt.sign({ user_id: user.user_id }, "hanghaekangaroo");
