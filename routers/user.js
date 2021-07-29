@@ -1,5 +1,4 @@
 const express = require("express");
-const jwt = require("jsonwebtoken");
 const {
   user,
   university,
@@ -11,7 +10,6 @@ const {
   univ_comment,
 } = require("../models");
 const router = express.Router(); // 라우터라고 선언한다.
-const passport = require("passport");
 const authMiddleware = require("../middlewares/auth-middleware");
 
 router.post("/user", async (req, res) => {
@@ -166,4 +164,5 @@ router.delete("/user/:user_id", authMiddleware, async (req, res) => {
     });
   }
 });
+
 module.exports = router;

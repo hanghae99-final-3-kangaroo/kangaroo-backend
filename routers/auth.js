@@ -2,6 +2,10 @@ const express = require("express");
 const jwt = require("jsonwebtoken");
 const router = express.Router(); // 라우터라고 선언한다.
 const passport = require("passport");
+const ejs = require("ejs");
+const path = require("path");
+const appDir = path.dirname(require.main.filename);
+const nodemailer = require("nodemailer");
 
 router.get("/logout", async (req, res, next) => {
   req.logout();
@@ -87,4 +91,47 @@ router.get(
     });
   }
 );
+
+router.post("/email", async (req, res) => {
+  let authCode = Math.random().toString().substr(2, 6);
+  let emailTemplete;
+  ejs.renderFile(
+    appDir + "/template/authMail.ejs",
+    { authCode },
+    function (err, data) {
+      if (err) {
+        console.log(err);
+      }
+      emailTemplete = data;
+    }
+  );
+
+  let transporter = nodemailer.createTransport({
+    service: "gmail",
+    host: "smtp.gmail.com",
+    port: 587,
+    secure: false,
+    auth: {
+      user: process.env.NODEMAILER_USER,
+      pass: process.env.NODEMAILER_PASS,
+    },
+  });
+
+  let mailOptions = await transporter.sendMail({
+    from: `Kangaroo`,
+    to: req.body.school_email,
+    subject: "회원가입을 위한 인증번호를 입력해주세요.",
+    html: emailTemplete,
+  });
+
+  transporter.sendMail(mailOptions, function (error, info) {
+    if (error) {
+      console.log(error);
+    }
+    console.log("Finish sending email : " + info.response);
+    res.send({ authCode });
+    transporter.close();
+  });
+});
+
 module.exports = router;
