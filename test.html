@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+    <script>
+        function login(){
+            $.ajax({
+                url:'http://3.36.90.60/api/login', //request 보낼 서버의 경로
+                xhrFields: {
+                    withCredentials: true
+                },
+    crossDomain: true,
+                type:'post', // 메소드(get, post, put 등)
+                data:{'email':$('#loginId').val(),'password':$('#loginPw').val()}, //보낼 데이터
+                success: function(data) {
+                    console.log(data.token)
+                    $.ajax({
+                url:'http://3.36.90.60/api/user/13', //request 보낼 서버의 경로
+                type:'get', // 메소드(get, post, put 등)
+                headers:{
+                    "Authorization":`Bearer ${data.token}`
+                },
+                data:{}, //보낼 데이터
+                success: function(data) {
+                    console.log(data)
+                },
+                error: function(err) {
+                    //서버로부터 응답이 정상적으로 처리되지 못햇을 때 실행
+                    console.log(err)
+                }
+            });
+                },
+                error: function(err) {
+                    //서버로부터 응답이 정상적으로 처리되지 못햇을 때 실행
+                    console.log(err)
+                }
+            });
+        }
+    </script>
+</head>
+<body>
+        <div>
+          <label for="loginId">아이디</label>
+          <input type="email" id="loginId" name="email" placeholder="ID" >
+          <label for="loginPw">비밀번호</label>
+          <input type="password" id="loginPw" name="password" placeholder="Password" >
+        </div>
+        <button onclick="login()">로그인</button>
+        <button onclick="myinfo2()">내정보</button>
+</body>
+</html>

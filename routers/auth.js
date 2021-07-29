@@ -96,7 +96,7 @@ router.post("/email", async (req, res) => {
   let authCode = Math.random().toString().substr(2, 6);
   let emailTemplete;
   ejs.renderFile(
-    appDir + "/template/authMail.ejs",
+    appDir + "/template/authmail.ejs",
     { authCode },
     function (err, data) {
       if (err) {
