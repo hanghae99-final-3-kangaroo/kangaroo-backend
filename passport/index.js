@@ -1,6 +1,8 @@
 const passport = require("passport");
 const local = require("./local");
+const google = require("./google");
 const { user } = require("../models");
+const kakao = require("./kakao");
 module.exports = () => {
   passport.serializeUser(function (user, done) {
     console.log("serializeUser ", user);
@@ -16,4 +18,7 @@ module.exports = () => {
   });
   //실행을 한번 시켜줘야 등록이 될 것이다.
   local();
+  google();
+  kakao();
+  //facebook();
 };
