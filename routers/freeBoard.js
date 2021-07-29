@@ -86,6 +86,10 @@ router.get("/post/:post_id", async (req, res, next) => {
 // free_board 글 수정
 router.put("/post/:post_id", async (req, res, next) => {
   try {
+    // authMiddleware
+    // const { user } = res.locals;
+    // const user_Id = user.userId;
+
     const { post_id } = req.params;
     const { user_id, title, category, content, country_id } = req.body;
 
@@ -98,7 +102,7 @@ router.put("/post/:post_id", async (req, res, next) => {
       return res.status(401).send({ ok: false, message: "작성자가 아닙니다" });
     }
 
-    const result = await free_board.update(
+    await free_board.update(
       {
         user_id,
         title,
@@ -110,6 +114,10 @@ router.put("/post/:post_id", async (req, res, next) => {
         where: { post_id },
       }
     );
+    const result = await free_board.findAll({
+      where: { post_id },
+    });
+
     res.status(200).send({
       result,
       ok: true,

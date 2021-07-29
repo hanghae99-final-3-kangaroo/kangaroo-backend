@@ -85,6 +85,10 @@ router.get("/post/:post_id", async (req, res, next) => {
 // univ_board 글 수정
 router.put("/post/:post_id", async (req, res, next) => {
   try {
+    // authMiddleware
+    // const { user } = res.locals;
+    // const user_Id = user.userId;
+
     const { post_id } = req.params;
     const { user_id, univ_id, title, category, content, is_fixed } = req.body;
 
@@ -110,7 +114,13 @@ router.put("/post/:post_id", async (req, res, next) => {
         where: { post_id },
       }
     );
+
+    const result = await univ_board.findAll({
+      where: { post_id },
+    });
+
     res.status(200).send({
+      result,
       ok: true,
       message: "게시글 수정 성공",
     });
