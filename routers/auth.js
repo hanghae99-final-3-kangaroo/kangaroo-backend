@@ -106,10 +106,19 @@ router.post("/email", async (req, res) => {
     },
   });
   if (!isExist) {
-    res.send({ result: "not supported university" });
+    res.send({ ok: false, message: "not supported university" });
     return;
   }
 
+  const isExistUser = await user.findOne({
+    where: {
+      school_email,
+    },
+  });
+  if (isExistUser) {
+    res.send({ ok: false, message: "already exist email" });
+    return;
+  }
   let authCode = Math.random().toString().substr(2, 6);
   let emailTemplete;
   ejs.renderFile(
