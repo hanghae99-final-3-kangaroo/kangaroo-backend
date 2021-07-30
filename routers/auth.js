@@ -96,6 +96,20 @@ router.get(
 );
 
 router.post("/email", async (req, res) => {
+  const { school_email } = req.body;
+  const school_domain = school_email.split("@")[1];
+  const isExist = await university.findOne({
+    where: {
+      email_domain: {
+        [Op.like]: "%" + school_domain,
+      },
+    },
+  });
+  if (!isExist) {
+    res.send({ result: "not supported university" });
+    return;
+  }
+
   let authCode = Math.random().toString().substr(2, 6);
   let emailTemplete;
   ejs.renderFile(
@@ -122,7 +136,7 @@ router.post("/email", async (req, res) => {
 
   let mailOptions = await transporter.sendMail({
     from: `Kangaroo`,
-    to: req.body.school_email,
+    to: school_email,
     subject: "회원가입을 위한 인증번호를 입력해주세요.",
     html: emailTemplete,
   });
