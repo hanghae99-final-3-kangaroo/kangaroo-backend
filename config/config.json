@@ -9,7 +9,12 @@
       "define": {
         "freezeTableName": true
       },
-      "logging": false
+      "logging": false,
+      "dialectOptions": {
+        "charset": "utf8mb4",
+        "dateStrings": true,
+        "typeCast": true
+    }
     },
     "test": {
       "username": "root",
