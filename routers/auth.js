@@ -6,6 +6,9 @@ const ejs = require("ejs");
 const path = require("path");
 const appDir = path.dirname(require.main.filename);
 const nodemailer = require("nodemailer");
+const { university, user } = require("../models");
+const Sequelize = require("sequelize");
+const Op = Sequelize.Op;
 
 router.get("/logout", async (req, res, next) => {
   req.logout();
@@ -133,5 +136,32 @@ router.post("/email", async (req, res) => {
     transporter.close();
   });
 });
+router.post("/email/check", async (req, res) => {
+  const { school_email, user_id } = req.body;
+  const school_domain = school_email.split("@")[1];
+  const isExist = await university.findOne({
+    where: {
+      email_domain: {
+        [Op.like]: "%" + school_domain,
+      },
+    },
+  });
+  if (isExist) {
+    await user.update(
+      {
+        school_auth: true,
+        school_email,
+        univ_id: isExist.univ_id,
+        country_id: isExist.country_id,
+      },
+      {
+        where: { user_id },
+      }
+    );
 
+    res.send({ result: "university authorized" });
+    return;
+  }
+  res.send({ result: "not supported university" });
+});
 module.exports = router;
