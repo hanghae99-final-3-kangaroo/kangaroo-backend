@@ -1,7 +1,7 @@
 {
     "development": {
-      "username": "root",
-      "password": "1234",
+      "username": "kangaroo",
+      "password": "hanghaekangaroo",
       "database": "kangaroo",
       "host": "127.0.0.1",
       "dialect": "mysql",
@@ -9,7 +9,12 @@
       "define": {
         "freezeTableName": true
       },
-      "logging": false
+      "logging": false,
+      "dialectOptions": {
+        "charset": "utf8mb4",
+        "dateStrings": true,
+        "typeCast": true
+    }
     },
     "test": {
       "username": "root",

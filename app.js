@@ -3,8 +3,11 @@ const dotenv = require("dotenv");
 const passport = require("passport");
 const session = require("express-session");
 const app = express();
-
+const fs = require('fs');
 const passportConfig = require("./passport");
+const http=require("http");
+const https=require("https");
+
 dotenv.config();
 app.set("port", process.env.PORT || 3000);
 
@@ -31,6 +34,7 @@ app.use(
 app.use(passport.initialize());
 app.use(passport.session());
 
+app.use(express.static('public'));
 const userRouter = require("./routers/user");
 const freeBoardRouter = require("./routers/freeBoard");
 const univBoardRouter = require("./routers/univBoard");
@@ -49,6 +53,10 @@ app.get("/", (req, res) => {
   res.send("Hello, Kangaroo");
 });
 
-app.listen(app.get("port"), () => {
-  console.log(`listening at http://localhost:${app.get("port")}`);
-});
+ const options = { // letsencrypt로 받은 인증서 경로를 입력
+  ca: fs.readFileSync('/etc/letsencrypt/live/yzkim9501.site/fullchain.pem'),
+  key: fs.readFileSync('/etc/letsencrypt/live/yzkim9501.site/privkey.pem'),
+  cert: fs.readFileSync('/etc/letsencrypt/live/yzkim9501.site/cert.pem')
+  };
+  http.createServer(app).listen(3000);
+  https.createServer(options, app).listen(443);
