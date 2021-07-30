@@ -27,6 +27,10 @@ module.exports = (sequelize, DataTypes) => {
         allowNull: false,
         type: Sequelize.INTEGER,
       },
+      email_domain: {
+        allowNull: false,
+        type: Sequelize.STRING,
+      },
       admin_id: Sequelize.INTEGER,
     },
     {

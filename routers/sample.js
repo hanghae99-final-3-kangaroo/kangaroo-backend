@@ -94,4 +94,150 @@ router.get("/sample2", async (req, res, next) => {
     res.status(400).send(err);
   }
 });
+
+router.get("/sample3", async (req, res, next) => {
+  try {
+    //베트남
+    await university.create({
+      name: "하노이 국립대",
+      country_id: 1,
+      email_domain: "vnu.edu.vn",
+    });
+    await university.create({
+      name: "똔득탕 대학교",
+      country_id: 1,
+      email_domain: "tdtu.edu.vn",
+    });
+    await university.create({
+      name: "호치민 인사대",
+      country_id: 1,
+      email_domain: "vns.edu.vn",
+    });
+    await university.create({
+      name: "호치민 사범대",
+      country_id: 1,
+      email_domain: "hcmue.edu.vn",
+    });
+    await university.create({
+      name: "RMIT",
+      country_id: 1,
+      email_domain: "rmit.edu.vn",
+    });
+    //호주
+    await university.create({
+      name: "시드니 대학교",
+      country_id: 2,
+      email_domain: "uni.sydney.edu.au",
+    });
+    await university.create({
+      name: "뉴사우스웨일즈 대학교",
+      country_id: 2,
+      email_domain: "unsw.edu.au",
+    });
+    await university.create({
+      name: "unsw.edu.au",
+      country_id: 2,
+      email_domain: "student.unimelb.edu.au",
+    });
+    await university.create({
+      name: "퀸즐랜드 대학교",
+      country_id: 2,
+      email_domain: "uqconnect.edu.au",
+    });
+    await university.create({
+      name: "퀸즐랜드 공과대학",
+      country_id: 2,
+      email_domain: "connect.qut.edu.au",
+    });
+
+    //미국
+    await university.create({
+      name: "New York University",
+      country_id: 3,
+      email_domain: "nyu.edu",
+    });
+    await university.create({
+      name: "University Of Illinois at Urbana Champaign",
+      country_id: 3,
+      email_domain: "illinois.edu",
+    });
+    await university.create({
+      name: "University of California - Berkely",
+      country_id: 3,
+      email_domain: "ucla.edu",
+    });
+    await university.create({
+      name: "University of Southern California",
+      country_id: 3,
+      email_domain: "usc.edu",
+    });
+    await university.create({
+      name: "Columbia University in the City of New York",
+      country_id: 3,
+      email_domain: "columbia.edu",
+    });
+    await university.create({
+      name: "UCLA",
+      country_id: 3,
+      email_domain: "humnet.ucla.edu",
+    });
+    await university.create({
+      name: "Cornell University",
+      country_id: 3,
+      email_domain: "cornell.edu",
+    });
+    await university.create({
+      name: "Carnegie Mellon University",
+      country_id: 3,
+      email_domain: "andrew.cmu.edu",
+    });
+    await university.create({
+      name: "University of Pennsylvania",
+      country_id: 3,
+      email_domain: "upenn.edu",
+    });
+    await university.create({
+      name: "University of Michigan",
+      country_id: 3,
+      email_domain: "umich.edu",
+    });
+    await university.create({
+      name: "Duke University",
+      country_id: 3,
+      email_domain: "alumni.duke.edu",
+    });
+
+    //캐나다
+    await university.create({
+      name: "Waterloo University",
+      country_id: 4,
+      email_domain: "edu.uwaterloo.ca",
+    });
+    await university.create({
+      name: "University of Toronto",
+      country_id: 4,
+      email_domain: "mail.utoronto.ca",
+    });
+    await university.create({
+      name: "Mcgill University",
+      country_id: 4,
+      email_domain: "mcgill.ca",
+    });
+    await university.create({
+      name: "The British Columbia University",
+      country_id: 4,
+      email_domain: "student.ubc.ca",
+    });
+    await university.create({
+      name: "The university of Alberta",
+      country_id: 4,
+      email_domain: "ualberta.ca",
+    });
+    res.status(200).send("가상 데이터 생성 성공");
+  } catch (err) {
+    console.error(err);
+    res.status(400).send(err);
+  }
+});
+
 module.exports = router;
