@@ -3,6 +3,7 @@ const local = require("./local");
 const google = require("./google");
 const { user } = require("../models");
 const kakao = require("./kakao");
+const facebook = require("./facebook");
 module.exports = () => {
   passport.serializeUser(function (user, done) {
     console.log("serializeUser ", user);
@@ -20,5 +21,5 @@ module.exports = () => {
   local();
   google();
   kakao();
-  //facebook();
+  facebook();
 };

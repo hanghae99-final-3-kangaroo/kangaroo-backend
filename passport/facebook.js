@@ -12,21 +12,20 @@ module.exports = () => {
         callbackURL: "/auth/facebook/callback",
       },
       async (accessToken, refreshToken, profile, done) => {
-        console.log(profile);
-        // const email = profile["_json"].kakao_account.email;
-        // const nickname = profile.displayName;
-        //     const provider = "facebook";
-        //     let userInfo;
-        //     userInfo = await user.findOne({ where: { provider, email } });
-        //     if (!userInfo) {
-        //       await user.create({
-        //         provider,
-        //         email,
-        //         nickname,
-        //       });
-        //       userInfo = await user.findOne({ where: { provider, email } });
-        //     }
-        //     return done(null, userInfo);
+        const nickname = profile.displayName;
+        const provider = "facebook";
+        const email = profile.id;
+        let userInfo;
+        userInfo = await user.findOne({ where: { provider, email } });
+        if (!userInfo) {
+          await user.create({
+            provider,
+            email,
+            nickname,
+          });
+          userInfo = await user.findOne({ where: { provider, email } });
+        }
+        return done(null, userInfo);
       }
     )
   );
