@@ -27,7 +27,7 @@ router.post(
     const user = req.user;
     const token = jwt.sign({ user_id: user.user_id }, "hanghaekangaroo");
 
-    res.json({ message: "success", token: token });
+    res.status(200).send({ message: "success", token: token });
   }
 );
 router.get(
@@ -44,7 +44,7 @@ router.get(
   function (req, res) {
     const user = req.user;
     const token = jwt.sign({ user_id: user.user_id }, "hanghaekangaroo");
-    res.json({
+    res.status(200).send({
       message: "google login succeed",
       token: token,
     });
@@ -64,7 +64,7 @@ router.get(
   function (req, res) {
     const user = req.user;
     const token = jwt.sign({ user_id: user.user_id }, "hanghaekangaroo");
-    res.json({
+    res.status(200).send({
       message: "kakao login succeed",
       token: token,
     });
@@ -88,7 +88,7 @@ router.get(
   function (req, res) {
     const user = req.user;
     const token = jwt.sign({ user_id: user.user_id }, "hanghaekangaroo");
-    res.json({
+    res.status(200).send({
       message: "facebook login succeed",
       token: token,
     });
