@@ -7,8 +7,8 @@ module.exports = () => {
     "facebook",
     new FacebookStrategy(
       {
-        clientID: "266510108573759",
-        clientSecret: "5b40ef9bc7555d948e84d73c10f69892",
+        clientID: process.env.FB_PASSPORT_ID,
+        clientSecret: process.env.FB_PASSPORT_PW,
         callbackURL: "/auth/facebook/callback",
       },
       async (accessToken, refreshToken, profile, done) => {

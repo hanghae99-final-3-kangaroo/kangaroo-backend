@@ -7,7 +7,7 @@ module.exports = () => {
     "kakao",
     new KakaoStrategy(
       {
-        clientID: "4d6708ac100427bb2f8cca86b4352243",
+        clientID: process.env.KAKAO_PASSPORT_KEY,
         callbackURL: "/auth/kakao/callback", // 위에서 설정한 Redirect URI
       },
       async (accessToken, refreshToken, profile, done) => {
