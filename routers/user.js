@@ -165,4 +165,47 @@ router.delete("/user/:user_id", authMiddleware, async (req, res) => {
   }
 });
 
+router.post("/admin", authMiddleware, async (req, res) => {
+  const { user_id } = res.locals.user;
+  const { target_user_id } = req.body;
+
+  try {
+    const targetUniv = await university.findOne({
+      where: { admin_id: user_id },
+    });
+    if (!targetUniv) {
+      res.status(403).send({
+        ok: false,
+        message: "관리자 권한 없음",
+      });
+      return;
+    }
+
+    const targetUser = await user.findOne({
+      where: { user_id: target_user_id },
+    });
+    if (targetUser.univ_id != targetUniv.univ_id) {
+      res.status(403).send({
+        ok: false,
+        message: "변경을 원하는 관리자가 해당 대학에 재학중이지 않음",
+      });
+      return;
+    }
+
+    targetUniv.update({ admin_id: target_user_id });
+    const resultUniv = await university.findOne({
+      where: { univ_id: targetUniv.univ_id },
+    });
+    res.status(200).send({
+      ok: true,
+      result: resultUniv,
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(400).send({
+      ok: false,
+      message: `${err} : 관리자 변경 실패`,
+    });
+  }
+});
 module.exports = router;
