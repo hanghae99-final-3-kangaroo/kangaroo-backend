@@ -11,9 +11,23 @@ const {
 } = require("../models");
 const router = express.Router(); // 라우터라고 선언한다.
 const authMiddleware = require("../middlewares/auth-middleware");
+const bcrypt = require("bcrypt");
+const Joi = require("joi");
+
+const postUserModel = Joi.object({
+  email: Joi.string().email().required(),
+  nickname: Joi.string().min(4).max(20).required(),
+  password: Joi.string()
+    .alphanum()
+    .pattern(new RegExp("^[a-zA-Z0-9]{4,30}$"))
+    .required(),
+});
 
 router.post("/user", async (req, res) => {
-  const { email, password, nickname } = req.body;
+  const { email, password, nickname } = await postUserModel.validateAsync(
+    req.body
+  );
+  // console.log(email, password, nickname);
   const provider = "local";
   try {
     const dupEmail = await user.findOne({
@@ -43,9 +57,13 @@ router.post("/user", async (req, res) => {
       });
       return;
     }
+
+    const salt = await bcrypt.genSalt();
+    const hashedPassword = await bcrypt.hash(password, salt);
+
     const createdUser = await user.create({
       email,
-      password,
+      password: hashedPassword,
       nickname,
       provider,
     });
