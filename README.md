@@ -22,7 +22,7 @@
 - .edu 이메일 사용하는 사용자 인증
 - 소셜 로그인
 
-- ## 프로젝트 기간
+## 프로젝트 기간
   2021/07/23 ~ 2021/09/03
 
 ## 1. Wireframe (Figma)
@@ -39,7 +39,6 @@ https://www.notion.so/yzkim9501/1e66a5c0275a4f6aa29f75d34eb0b095#792c4fba41de496
   - 김정후
   - 권지영
   - 장희성
-
 
 ## 3. 노션 설계 페이지
 https://yzkim9501.notion.site/UFO-3-b9bf655f15444276bdc50eda67336904
