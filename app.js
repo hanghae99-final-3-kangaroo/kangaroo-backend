@@ -20,6 +20,11 @@ const { sequelize } = require("./models");
 app.use(express.urlencoded({ extended: false }));
 app.use(express.json());
 
+const swaggerUi = require("swagger-ui-express");
+const swaggerFile = require("./swagger-output");
+
+app.use("/swagger", swaggerUi.serve, swaggerUi.setup(swaggerFile));
+
 sequelize
   .sync({ force: false })
   .then(() => {

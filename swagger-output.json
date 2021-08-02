@@ -1,0 +1,1059 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "title": "My API",
+    "description": "Description",
+    "version": "1.0.0"
+  },
+  "host": "localhost:3000",
+  "basePath": "/",
+
+  "components": {
+    "securitySchemes": {
+      "Bearer": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT"
+      }
+    }
+  },
+  "security": [{
+    "Bearer": []
+  }],  
+  "securityDefinitions": {
+    "Bearer": {
+      "type": "apiKey",
+      "name": "Authorization",
+      "in":"header",
+      "description": "send JWT"
+    }
+  },
+
+  "tags": [],
+  "schemes": [
+    "http"
+  ],
+  "consumes": ["application/json"],
+  "produces": ["application/json"],
+  "paths": {
+    "/": {
+      "get": {
+        "tags": ["/"],
+        "description": "안녕?",
+        "parameters": [],
+        "responses": {}
+      }
+    },
+    "/api/user": {
+      "post": {
+        "tags": ["user"],
+        "description": "회원가입",
+        "parameters": [
+          {
+            "name": "obj",
+            "in": "body",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "email": {
+                  "example": "firstquarter88@gmail.com"
+                },
+                "password": {
+                  "example": "1234"
+                },
+                "nickname": {
+                  "example": "미남"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        }
+      }
+    },
+    "/api/user/{user_id}": {
+      "get": {
+        "tags": ["user"],
+        "description": "회원 상세정보 불러오기",
+        "parameters": [
+          {
+            "name": "user_id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          }
+        }
+      },
+      "put": {
+        "tags": ["user"],
+        "description": "회원 정보 수정하기",
+        "parameters": [
+          {
+            "name": "user_id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "obj",
+            "in": "body",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "email": {
+                  "example": "modify@modify.com"
+                },
+                "password": {
+                  "example": "1111"
+                },
+                "nickname": {
+                  "example": "복숭아"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          }
+        }
+      },
+      "delete": {
+        "tags": ["user"],
+        "description": "회원 탈퇴",
+        "parameters": [
+          {
+            "name": "user_id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          }
+        }
+      }
+    },
+    "/auth/logout": {
+      "get": {
+        "tags": ["auth"],
+        "description": "로그아웃!",
+        "parameters": [],
+        "responses": {}
+      }
+    },
+    "/auth\r/login": {
+      "post": {
+        "tags": ["auth"],
+        "description": "로그인!",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/auth/email": {
+      "post": {
+        "tags": ["auth"],
+        "description": "이메일 인증!",
+        "parameters": [
+          {
+            "name": "obj",
+            "in": "body",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "school_email": {
+                  "example": "firstquarter88@gmail.com"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {}
+      }
+    },
+    "/auth/email/check": {
+      "post": {
+        "tags": ["auth"],
+        "description": "이메일 인증 확인!",
+        "parameters": [
+          {
+            "name": "obj",
+            "in": "body",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "school_email": {
+                  "example": "당신의 학교 이메일을 적으시오"
+                },
+                "user_id": {
+                  "example": "1"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {}
+      }
+    },
+    "/free/post": {
+      "post": {
+        "tags": ["free_board"],
+        "description": "자유 게시판 글 작성",
+        "parameters": [
+          {
+            "name": "obj",
+            "in": "body",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "title": {
+                  "example": "내가"
+                },
+                "category": {
+                  "example": "1"
+                },
+                "content": {
+                  "example": "초밥"
+                },
+                "country_id": {
+                  "example": "5"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          }
+        }
+      },
+      "get": {
+        "tags": ["free_board"],
+        "description": "자유 게시판 글 전체 조회",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Bad Request"
+          }
+        }
+      }
+    },
+    "/free/post/{post_id}": {
+      "get": {
+        "tags": ["free_board"],
+        "description": "자유 게시판 글 상세 조회",
+        "parameters": [
+          {
+            "name": "post_id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Bad Request"
+          }
+        }
+      },
+      "put": {
+        "tags": ["free_board"],
+        "description": "자유 게시판 글 수정",
+        "parameters": [
+          {
+            "name": "post_id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "obj",
+            "in": "body",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "title": {
+                  "example": "내가초밥 수정"
+                },
+                "category": {
+                  "example": "1"
+                },
+                "content": {
+                  "example": "내가초밥 수정"
+                },
+                "country_id": {
+                  "example": "3"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          }
+        }
+      },
+      "delete": {
+        "tags": ["free_board"],
+        "description": "자유 게시판 글 삭제(댓글도 함께 삭제)",
+        "parameters": [
+          {
+            "name": "post_id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          }
+        }
+      }
+    },
+    "/free/comment": {
+      "post": {
+        "tags": ["free_comment"],
+        "description": "자유 게시판 댓글 작성",
+        "parameters": [
+          {
+            "name": "obj",
+            "in": "body",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "post_id": {
+                  "example": "초바압"
+                },
+                "content": {
+                  "example": "먹고싶어요!!!"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          }
+        }
+      }
+    },
+    "/free/comment/{post_id}": {
+      "get": {
+        "tags": ["free_comment"],
+        "description": "자유 게시판 댓글 조회",
+        "parameters": [
+          {
+            "name": "post_id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Bad Request"
+          }
+        }
+      }
+    },
+    "/free/comment/{comment_id}": {
+      "put": {
+        "tags": ["free_comment"],
+        "description": "자유 게시판 댓글 수정",
+        "parameters": [
+          {
+            "name": "comment_id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "obj",
+            "in": "body",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "content": {
+                  "example": "오마카세로!!!"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          }
+        }
+      }
+    },
+    "/free\r/comment/{comment_id}": {
+      "delete": {
+        "tags": ["free_comment"],
+        "description": "자유 게시판 댓글 삭제",
+        "parameters": [
+          {
+            "name": "comment_id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          }
+        }
+      }
+    },
+    "/univ/post": {
+      "post": {
+        "tags": ["univ_board"],
+        "description": "대학 게시판 글 작성",
+        "parameters": [
+          {
+            "name": "obj",
+            "in": "body",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "univ_id": {
+                  "example": "1"
+                },
+                "title": {
+                  "example": "대학초밥"
+                },
+                "category": {
+                  "example": "1"
+                },
+                "content": {
+                  "example": "대학초밥맛있지!!!"
+                },
+                "is_fixed": {
+                  "example": "true"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          }
+        }
+      },
+      "get": {
+        "tags": ["univ_board"],
+        "description": "대학 게시판 글 전체 조회",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Bad Request"
+          }
+        }
+      }
+    },
+    "/univ/post/{post_id}": {
+      "get": {
+        "tags": ["univ_board"],
+        "description": "대학 게시판 글 상세 조회",
+        "parameters": [
+          {
+            "name": "post_id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Bad Request"
+          }
+        }
+      },
+      "put": {
+        "tags": ["univ_board"],
+        "description": "대학 게시판 글 수정",
+        "parameters": [
+          {
+            "name": "post_id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "obj",
+            "in": "body",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "univ_id": {
+                  "example": "1"
+                },
+                "title": {
+                  "example": "대학초밥수정"
+                },
+                "category": {
+                  "example": "1"
+                },
+                "content": {
+                  "example": "대학초밥수정맛있어요?"
+                },
+                "is_fixed": {
+                  "example": "true"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          }
+        }
+      },
+      "delete": {
+        "tags": ["univ_board"],
+        "description": "대학 게시판 글 삭제",
+        "parameters": [
+          {
+            "name": "post_id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          }
+        }
+      }
+    },
+    "/univ/comment": {
+      "post": {
+        "tags": ["univ_comment"],
+        "description": "대학 게시판 댓글 작성",
+        "parameters": [
+          {
+            "name": "obj",
+            "in": "body",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "post_id": {
+                  "example": "대학댓글초밥"
+                },
+                "content": {
+                  "example": "초밥 지겹니?"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          }
+        }
+      }
+    },
+    "/univ/comment/{post_id}": {
+      "get": {
+        "tags": ["univ_comment"],
+        "description": "대학 게시판 댓글 조회",
+        "parameters": [
+          {
+            "name": "post_id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Bad Request"
+          }
+        }
+      }
+    },
+    "/univ/comment/{comment_id}": {
+      "put": {
+        "tags": ["univ_comment"],
+        "description": "대학 게시판 댓글 수정",
+        "parameters": [
+          {
+            "name": "comment_id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "obj",
+            "in": "body",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "content": {
+                  "example": "나는 안 지겨워"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          }
+        }
+      }
+    },
+    "/univ\r/comment/{comment_id}": {
+      "delete": {
+        "tags": ["univ_comment"],
+        "description": "대학 게시판 댓글 삭제",
+        "parameters": [
+          {
+            "name": "comment_id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          }
+        }
+      }
+    },
+    "/election/": {
+      "post": {
+        "tags": ["election"],
+        "description": "선거 시작!",
+        "parameters": [
+          {
+            "name": "obj",
+            "in": "body",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "name": {
+                  "example": "팀장선발"
+                },
+                "content": {
+                  "example": "팀장은 과연 누구"
+                },
+                "country_id": {
+                  "example": "1"
+                },
+                "univ_id": {
+                  "example": "1"
+                },
+                "candidate_1": {
+                  "example": "장상현"
+                },
+                "candidate_2": {
+                  "example": "any"
+                },
+                "candidate_3": {
+                  "example": "any"
+                },
+                "candidate_4": {
+                  "example": "any"
+                },
+                "candidate_5": {
+                  "example": "any"
+                },
+                "end_date": {
+                  "example": "any"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        }
+      }
+    },
+    "/election/{election_id}": {
+      "get": {
+        "tags": ["election"],
+        "description": "선거 조회!",
+        "parameters": [
+          {
+            "name": "election_id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        }
+      },
+      "put": {
+        "tags": ["election"],
+        "description": "선거 수정!",
+        "parameters": [
+          {
+            "name": "election_id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "obj",
+            "in": "body",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "name": {
+                  "example": "any"
+                },
+                "content": {
+                  "example": "any"
+                },
+                "country_id": {
+                  "example": "any"
+                },
+                "univ_id": {
+                  "example": "any"
+                },
+                "candidate_1": {
+                  "example": "any"
+                },
+                "candidate_2": {
+                  "example": "any"
+                },
+                "candidate_3": {
+                  "example": "any"
+                },
+                "candidate_4": {
+                  "example": "any"
+                },
+                "candidate_5": {
+                  "example": "any"
+                },
+                "end_date": {
+                  "example": "any"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        }
+      },
+      "delete": {
+        "tags": ["election"],
+        "description": "선거 삭제!",
+        "parameters": [
+          {
+            "name": "election_id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        }
+      }
+    },
+    "/election/vote/{election_id}": {
+      "post": {
+        "tags": ["election"],
+        "description": "투표하기!",
+        "parameters": [
+          {
+            "name": "election_id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "obj",
+            "in": "body",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "vote_num": {
+                  "example": "1"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        }
+      }
+    },
+    "/election/{election_id}/result": {
+      "get": {
+        "tags": ["election"],
+        "description": "투표 결과 보기!",
+        "parameters": [
+          {
+            "name": "election_id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          }
+        }
+      }
+    },
+    "/test/sample": {
+      "get": {
+        "tags": ["sample"],
+        "description": "샘플 데이터1 넣기!",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Bad Request"
+          }
+        }
+      }
+    },
+    "/test/sample2": {
+      "get": {
+        "tags": ["sample"],
+        "description": "샘플 데이터2 넣기!",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Bad Request"
+          }
+        }
+      }
+    },
+    "/test/sample3": {
+      "get": {
+        "tags": ["sample"],
+        "description": "샘플 데이터3 넣기!",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Bad Request"
+          }
+        }
+      }
+    }
+  },
+  "definitions": {}
+}
