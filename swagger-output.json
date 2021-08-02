@@ -1,11 +1,11 @@
 {
   "swagger": "2.0",
   "info": {
-    "title": "My API",
-    "description": "Description",
-    "version": "1.0.0"
+    "title": "UFO",
+    "description": "뭘 좋아할지 몰라서, 다 준비해 봤어요.",
+    "version": "88.08.31"
   },
-  "host": "localhost:3000",
+  "host": "3.36.90.60",
   "basePath": "/",
 
   "components": {
@@ -31,7 +31,8 @@
 
   "tags": [],
   "schemes": [
-    "http"
+    "http",
+    "https"
   ],
   "consumes": ["application/json"],
   "produces": ["application/json"],
