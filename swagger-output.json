@@ -182,7 +182,23 @@
       "post": {
         "tags": ["auth"],
         "description": "로그인!",
-        "parameters": [],
+        "parameters": [
+          {
+            "name": "obj",
+            "in": "body",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "email": {
+                  "example": "firstquarter88@gmail.com"
+                },
+                "password": {
+                  "example": "1234abc"
+                }
+              }
+            }
+          }
+        ],
         "responses": {
           "200": {
             "description": "OK"
