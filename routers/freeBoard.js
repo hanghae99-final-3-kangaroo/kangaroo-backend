@@ -67,6 +67,18 @@ router.get("/post/:post_id", async (req, res, next) => {
   try {
     const { post_id } = req.params;
 
+    const check = await free_board.findAll({
+      where: { post_id },
+    });
+
+    if (check.length == 0) {
+      res.status(400).send({
+        ok: false,
+        message: "게시글이 없습니다.",
+      });
+      return;
+    }
+
     const result = await free_board.findOne({
       where: { post_id },
       include: [
@@ -212,6 +224,18 @@ router.get("/comment/:post_id", async (req, res, next) => {
   try {
     const { post_id } = req.params;
 
+    const check = await free_comment.findAll({
+      where: { post_id },
+    });
+
+    if (check.length == 0) {
+      res.status(400).send({
+        ok: false,
+        message: "댓글이 없습니다.",
+      });
+      return;
+    }
+
     const result = await free_comment.findAll({
       where: {
         post_id,
@@ -253,14 +277,8 @@ router.put("/comment/:comment_id", authMiddleware, async (req, res, next) => {
       return res.status(401).send({ ok: false, message: "작성자가 아닙니다" });
     }
 
-    await free_comment.update(
-      {
-        content,
-      },
-      {
-        where: { comment_id },
-      }
-    );
+    await free_comment.update({ content }, { where: { comment_id } });
+
     const result = await free_comment.findOne({
       where: { comment_id },
     });

@@ -24,12 +24,11 @@ const postUserModel = Joi.object({
 });
 
 router.post("/user", async (req, res) => {
-  const { email, password, nickname } = await postUserModel.validateAsync(
-    req.body
-  );
-  // console.log(email, password, nickname);
-  const provider = "local";
   try {
+    const { email, password, nickname } = await postUserModel.validateAsync(
+      req.body
+    );
+    const provider = "local";
     const dupEmail = await user.findOne({
       where: { email },
     });

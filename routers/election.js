@@ -3,15 +3,25 @@ const { election, university, country, vote } = require("../models");
 const router = express.Router(); // 라우터라고 선언한다.
 const Sequelize = require("sequelize");
 const authMiddleware = require("../middlewares/auth-middleware");
+const { DATE } = require("sequelize");
 
 router.post("/", authMiddleware, async (req, res) => {
   const { user_id } = res.locals.user;
-  const { name, content, country_id, univ_id, candidates, end_date } = req.body;
+  const { name, content, univ_id, candidates, end_date } = req.body;
   try {
-    const { admin_id: univAdmin } = await university.findOne({
+    const { admin_id: univAdmin, country_id } = await university.findOne({
       where: { univ_id },
-      attributes: ["admin_id"],
+      attributes: ["admin_id", "country_id"],
     });
+
+    if (new Date(end_date) < new Date()) {
+      res.status(403).send({
+        ok: false,
+        message: "시간 설정이 잘못 되었습니다.",
+      });
+      return;
+    }
+
     if (univAdmin == null) {
       res.status(403).send({
         ok: false,
@@ -93,6 +103,18 @@ router.put("/:election_id", authMiddleware, async (req, res) => {
   const { election_id } = req.params;
   const { name, content, country_id, univ_id, candidates, end_date } = req.body;
   try {
+    const electionCheck = await election.findOne({
+      where: { election_id },
+    });
+
+    if (electionCheck == null) {
+      res.status(403).send({
+        ok: false,
+        message: "없는 선거입니다.",
+      });
+      return;
+    }
+
     const { admin_id: univAdmin } = await university.findOne({
       where: { univ_id },
       attributes: ["admin_id"],

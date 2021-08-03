@@ -7,6 +7,8 @@ const { user } = require("../models");
 
 const router = express.Router(); // 라우터라고 선언한다.
 
+// Post Part
+
 // univ_board 글 작성
 router.post("/post", authMiddleware, async (req, res, next) => {
   try {
@@ -23,7 +25,6 @@ router.post("/post", authMiddleware, async (req, res, next) => {
       content,
       is_fixed,
     });
-    console.log(target);
 
     const targetPostId = target.post_id;
     const result = await univ_board.findOne({
@@ -66,6 +67,18 @@ router.get("/post", async (req, res, next) => {
 router.get("/post/:post_id", async (req, res, next) => {
   try {
     const { post_id } = req.params;
+
+    const check = await univ_board.findAll({
+      where: { post_id },
+    });
+
+    if (check.length == 0) {
+      res.status(400).send({
+        ok: false,
+        message: "게시글이 없습니다.",
+      });
+      return;
+    }
 
     const result = await univ_board.findOne({
       where: { post_id },
@@ -213,6 +226,18 @@ router.post("/comment", authMiddleware, async (req, res, next) => {
 router.get("/comment/:post_id", async (req, res, next) => {
   try {
     const { post_id } = req.params;
+
+    const check = await univ_comment.findAll({
+      where: { post_id },
+    });
+
+    if (check.length == 0) {
+      res.status(400).send({
+        ok: false,
+        message: "댓글이 없습니다.",
+      });
+      return;
+    }
 
     const result = await univ_comment.findAll({
       where: {

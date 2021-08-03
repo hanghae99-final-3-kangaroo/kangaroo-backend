@@ -98,68 +98,75 @@ router.get(
 );
 
 router.post("/email", async (req, res) => {
-  const { school_email } = req.body;
-  const school_domain = school_email.split("@")[1];
-  const isExist = await university.findOne({
-    where: {
-      email_domain: {
-        [Op.like]: "%" + school_domain,
+  try {
+    const { school_email } = req.body;
+    const school_domain = school_email.split("@")[1];
+    const isExist = await university.findOne({
+      where: {
+        email_domain: {
+          [Op.like]: "%" + school_domain,
+        },
       },
-    },
-  });
-  if (!isExist) {
-    res.send({ ok: false, message: "not supported university" });
-    return;
-  }
+    });
+    if (!isExist) {
+      res.status(403).send({ ok: false, message: "not supported university" });
+      return;
+    }
 
-  const isExistUser = await user.findOne({
-    where: {
-      school_email,
-    },
-  });
-  if (isExistUser) {
-    res.send({ ok: false, message: "already exist email" });
-    return;
-  }
-  let authCode = Math.random().toString().substr(2, 6);
-  let emailTemplete;
-  ejs.renderFile(
-    appDir + "/template/authmail.ejs",
-    { authCode },
-    function (err, data) {
-      if (err) {
-        console.log(err);
+    const isExistUser = await user.findOne({
+      where: {
+        school_email,
+      },
+    });
+    if (isExistUser) {
+      res.status(403).send({ ok: false, message: "already existing email" });
+      return;
+    }
+    let authCode = Math.random().toString().substr(2, 6);
+    let emailTemplete;
+    ejs.renderFile(
+      appDir + "/template/authmail.ejs",
+      { authCode },
+      function (err, data) {
+        if (err) {
+          console.log(err);
+        }
+        emailTemplete = data;
       }
-      emailTemplete = data;
-    }
-  );
+    );
 
-  let transporter = nodemailer.createTransport({
-    service: "gmail",
-    host: "smtp.gmail.com",
-    port: 587,
-    secure: false,
-    auth: {
-      user: process.env.NODEMAILER_USER,
-      pass: process.env.NODEMAILER_PASS,
-    },
-  });
+    let transporter = nodemailer.createTransport({
+      service: "gmail",
+      host: "smtp.gmail.com",
+      port: 587,
+      secure: false,
+      auth: {
+        user: process.env.NODEMAILER_USER,
+        pass: process.env.NODEMAILER_PASS,
+      },
+    });
 
-  let mailOptions = await transporter.sendMail({
-    from: `Kangaroo`,
-    to: school_email,
-    subject: "회원가입을 위한 인증번호를 입력해주세요.",
-    html: emailTemplete,
-  });
+    let mailOptions = await transporter.sendMail({
+      from: `Kangaroo`,
+      to: school_email,
+      subject: "회원가입을 위한 인증번호를 입력해주세요.",
+      html: emailTemplete,
+    });
 
-  transporter.sendMail(mailOptions, function (error, info) {
-    if (error) {
-      console.log(error);
-    }
-    console.log("Finish sending email : " + info.response);
-    res.send({ authCode });
-    transporter.close();
-  });
+    transporter.sendMail(mailOptions, function (error, info) {
+      if (error) {
+        console.log(error);
+      }
+      console.log("Finish sending email : " + info.response);
+      res.send({ authCode });
+      transporter.close();
+    });
+  } catch (errer) {
+    res.status(400).send({
+      ok: false,
+      message: "email 전송 실패!",
+    });
+  }
 });
 router.post("/email/check", async (req, res) => {
   const { school_email, user_id } = req.body;
@@ -184,9 +191,9 @@ router.post("/email/check", async (req, res) => {
       }
     );
 
-    res.send({ result: "university authorized" });
+    res.status(200).send({ result: "university authorized" });
     return;
   }
-  res.send({ result: "not supported university" });
+  res.status(403).send({ result: "not supported university" });
 });
 module.exports = router;
