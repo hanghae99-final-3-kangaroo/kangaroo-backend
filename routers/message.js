@@ -32,6 +32,12 @@ router.get("/:message_id", authMiddleware, async (req, res) => {
     const user_id = res.locals.user.user_id;
     const { message_id } = req.params;
     const msg = await message.findOne({ where: { message_id } });
+    if (msg.opened == false) {
+      await msg.update({
+        opened: true,
+        openedAt: new Date(),
+      });
+    }
     res.status(200).send({
       ok: true,
       result: msg,
