@@ -46,6 +46,7 @@ const freeBoardRouter = require("./routers/freeBoard");
 const univBoardRouter = require("./routers/univBoard");
 const electionRouter = require("./routers/election");
 const authRouter = require("./routers/auth");
+const messageRouter = require("./routers/message");
 const sampleRouter = require("./routers/sample");
 
 app.use("/api", [userRouter]);
@@ -53,6 +54,7 @@ app.use("/auth", [authRouter]);
 app.use("/free", [freeBoardRouter]);
 app.use("/univ", [univBoardRouter]);
 app.use("/election", [electionRouter]);
+app.use("/message", [messageRouter]);
 app.use("/test", [sampleRouter]);
 
 app.get("/", (req, res) => {
