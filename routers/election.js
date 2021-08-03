@@ -6,18 +6,7 @@ const authMiddleware = require("../middlewares/auth-middleware");
 
 router.post("/", authMiddleware, async (req, res) => {
   const { user_id } = res.locals.user;
-  const {
-    name,
-    content,
-    country_id,
-    univ_id,
-    candidate_1,
-    candidate_2,
-    candidate_3,
-    candidate_4,
-    candidate_5,
-    end_date,
-  } = req.body;
+  const { name, content, country_id, univ_id, candidates, end_date } = req.body;
   try {
     const { admin_id: univAdmin } = await university.findOne({
       where: { univ_id },
@@ -42,11 +31,11 @@ router.post("/", authMiddleware, async (req, res) => {
       content,
       country_id,
       univ_id,
-      candidate_1,
-      candidate_2,
-      candidate_3,
-      candidate_4,
-      candidate_5,
+      candidate_1: candidates[0],
+      candidate_2: candidates[1],
+      candidate_3: candidates[2],
+      candidate_4: candidates[3],
+      candidate_5: candidates[4],
       end_date,
     });
     res.status(200).send({
@@ -102,18 +91,7 @@ router.get("/:election_id", authMiddleware, async (req, res, next) => {
 router.put("/:election_id", authMiddleware, async (req, res) => {
   const { user_id } = res.locals.user;
   const { election_id } = req.params;
-  const {
-    name,
-    content,
-    country_id,
-    univ_id,
-    candidate_1,
-    candidate_2,
-    candidate_3,
-    candidate_4,
-    candidate_5,
-    end_date,
-  } = req.body;
+  const { name, content, country_id, univ_id, candidates, end_date } = req.body;
   try {
     const { admin_id: univAdmin } = await university.findOne({
       where: { univ_id },
@@ -139,11 +117,11 @@ router.put("/:election_id", authMiddleware, async (req, res) => {
         content,
         country_id,
         univ_id,
-        candidate_1,
-        candidate_2,
-        candidate_3,
-        candidate_4,
-        candidate_5,
+        candidate_1: candidates[0],
+        candidate_2: candidates[1],
+        candidate_3: candidates[2],
+        candidate_4: candidates[3],
+        candidate_5: candidates[4],
         end_date,
       },
       {
