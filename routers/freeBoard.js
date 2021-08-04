@@ -25,21 +25,20 @@ router.post("/post", authMiddleware, async (req, res, next) => {
       country_id,
     });
 
-    const targetPostId = target.post_id;
+    const target_post_id = target.post_id;
     const result = await free_board.findOne({
-      where: { post_id: targetPostId },
+      where: { post_id: target_post_id },
     });
 
     res.status(200).send({
       result,
       ok: true,
-      message: "게시글 작성 성공",
     });
-  } catch (error) {
-    console.error(error);
+  } catch (err) {
+    console.error(err);
     res.status(400).send({
       ok: false,
-      message: "게시글 작성 실패",
+      message: `${err} : 게시글 작성 실패`,
     });
   }
 });
@@ -47,17 +46,40 @@ router.post("/post", authMiddleware, async (req, res, next) => {
 // free_board 글 조회
 router.get("/post", async (req, res, next) => {
   try {
-    const result = await free_board.findAll({});
+    const { pageSize, pageNum, category } = req.query;
+
+    let offset = 0;
+
+    if (pageNum > 1) {
+      offset = pageSize * (pageNum - 1);
+    }
+
+    let result;
+
+    if (!category) {
+      result = await free_board.findAll({
+        offset: offset,
+        limit: Number(pageSize),
+        order: [["createdAt", "DESC"]],
+      });
+    } else {
+      result = await free_board.findAll({
+        where: { category },
+        offset: offset,
+        limit: Number(pageSize),
+        order: [["createdAt", "DESC"]],
+      });
+    }
+
     res.status(200).send({
       result,
       ok: true,
-      message: "게시글 조회 성공",
     });
-  } catch (error) {
-    console.error(error);
+  } catch (err) {
+    console.error(err);
     res.status(400).send({
       ok: false,
-      message: "게시글 조회 실패",
+      message: `${err} : 게시글 조회 실패`,
     });
   }
 });
@@ -66,18 +88,6 @@ router.get("/post", async (req, res, next) => {
 router.get("/post/:post_id", async (req, res, next) => {
   try {
     const { post_id } = req.params;
-
-    const check = await free_board.findAll({
-      where: { post_id },
-    });
-
-    if (check.length == 0) {
-      res.status(400).send({
-        ok: false,
-        message: "게시글이 없습니다.",
-      });
-      return;
-    }
 
     const result = await free_board.findOne({
       where: { post_id },
@@ -88,18 +98,25 @@ router.get("/post/:post_id", async (req, res, next) => {
       ],
     });
 
+    if (result.length == 0) {
+      res.status(403).send({
+        ok: false,
+        message: "게시글이 없습니다.",
+      });
+      return;
+    }
+
     if (result != null) {
       res.status(200).send({
         result,
         ok: true,
-        message: "게시글 상세 조회 성공",
       });
     }
-  } catch (error) {
-    console.error(error);
+  } catch (err) {
+    console.error(err);
     res.status(400).send({
       ok: false,
-      message: "게시글 상세 조회 실패",
+      message: `${err} : 게시글 상세 조회 실패`,
     });
   }
 });
@@ -107,18 +124,18 @@ router.get("/post/:post_id", async (req, res, next) => {
 // free_board 글 수정
 router.put("/post/:post_id", authMiddleware, async (req, res, next) => {
   try {
-    const { user } = res.locals; // authMiddleware
+    const { user } = res.locals;
     const user_id = user.user_id;
 
     const { post_id } = req.params;
     const { title, category, content, country_id } = req.body;
 
-    const { user_id: postUserId } = await free_board.findOne({
+    const { user_id: post_user_id } = await free_board.findOne({
       where: { post_id },
       attributes: ["user_id"],
     });
 
-    if (user_id !== postUserId) {
+    if (user_id !== post_user_id) {
       return res.status(401).send({ ok: false, message: "작성자가 아닙니다" });
     }
 
@@ -141,13 +158,12 @@ router.put("/post/:post_id", authMiddleware, async (req, res, next) => {
     res.status(200).send({
       result,
       ok: true,
-      message: "게시글 수정 성공",
     });
-  } catch (error) {
-    console.error(error);
+  } catch (err) {
+    console.error(err);
     res.status(400).send({
       ok: false,
-      message: "게시글 수정 실패",
+      message: `${err} : 게시글 수정 실패`,
     });
   }
 });
@@ -160,12 +176,12 @@ router.delete("/post/:post_id", authMiddleware, async (req, res, next) => {
 
     const { post_id } = req.params;
 
-    const { user_id: postUserId } = await free_board.findOne({
+    const { user_id: post_user_id } = await free_board.findOne({
       where: { post_id },
       attributes: ["user_id"],
     });
 
-    if (user_id !== postUserId) {
+    if (user_id !== post_user_id) {
       return res.status(401).send({ ok: false, message: "작성자가 아닙니다" });
     }
 
@@ -178,13 +194,12 @@ router.delete("/post/:post_id", authMiddleware, async (req, res, next) => {
 
     res.status(200).send({
       ok: true,
-      message: "게시글 삭제 성공",
     });
-  } catch (error) {
-    console.error(error);
+  } catch (err) {
+    console.error(err);
     res.status(400).send({
       ok: false,
-      message: "게시글 삭제 실패",
+      message: `${err} : 게시글 삭제 실패`,
     });
   }
 });
@@ -199,6 +214,18 @@ router.post("/comment", authMiddleware, async (req, res, next) => {
 
     const { post_id, content } = req.body;
 
+    const check_post_id = await free_board.findOne({
+      where: { post_id },
+    });
+    console.log(check_post_id);
+
+    if (check_post_id == null) {
+      res.status(403).send({
+        ok: false,
+        message: "존재하지 않는 게시글 입니다.",
+      });
+    }
+
     const result = await free_comment.create({
       user_id,
       post_id,
@@ -208,13 +235,12 @@ router.post("/comment", authMiddleware, async (req, res, next) => {
     res.status(200).send({
       result,
       ok: true,
-      message: "댓글 작성 성공",
     });
-  } catch (error) {
-    console.error(error);
+  } catch (err) {
+    console.error(err);
     res.status(400).send({
       ok: false,
-      message: "댓글 작성 실패",
+      message: `${err} : 댓글 작성 실패`,
     });
   }
 });
@@ -223,18 +249,6 @@ router.post("/comment", authMiddleware, async (req, res, next) => {
 router.get("/comment/:post_id", async (req, res, next) => {
   try {
     const { post_id } = req.params;
-
-    const check = await free_comment.findAll({
-      where: { post_id },
-    });
-
-    if (check.length == 0) {
-      res.status(400).send({
-        ok: false,
-        message: "댓글이 없습니다.",
-      });
-      return;
-    }
 
     const result = await free_comment.findAll({
       where: {
@@ -246,16 +260,25 @@ router.get("/comment/:post_id", async (req, res, next) => {
         },
       ],
     });
+
+    if (result.length == 0) {
+      res.status(200).send({
+        result,
+        ok: true,
+        message: "댓글이 없습니다.",
+      });
+      return;
+    }
+
     res.status(200).send({
       result,
       ok: true,
-      message: "댓글 조회 성공",
     });
-  } catch (error) {
-    console.error(error);
+  } catch (err) {
+    console.error(err);
     res.status(400).send({
       ok: false,
-      message: "댓글 조회 실패",
+      message: `${err} : 댓글 조회 실패`,
     });
   }
 });
@@ -269,29 +292,33 @@ router.put("/comment/:comment_id", authMiddleware, async (req, res, next) => {
     const { comment_id } = req.params;
     const { content } = req.body;
 
-    const { user_id: commentUserId } = await free_comment.findOne({
-      where: { comment_id },
-    });
-
-    if (user_id != commentUserId) {
-      return res.status(401).send({ ok: false, message: "작성자가 아닙니다" });
-    }
-
-    await free_comment.update({ content }, { where: { comment_id } });
-
     const result = await free_comment.findOne({
       where: { comment_id },
     });
+
+    if (result == null) {
+      res.status(403).send({
+        ok: false,
+        message: "댓글이 없습니다",
+      });
+      return;
+    }
+
+    if (user_id != result.user_id) {
+      return res.status(401).send({ ok: false, message: "작성자가 아닙니다" });
+    }
+
+    await result.update({ content });
+
     res.status(200).send({
       result,
       ok: true,
-      message: "댓글 수정 성공",
     });
-  } catch (error) {
-    console.error(error);
+  } catch (err) {
+    console.error(err);
     res.status(400).send({
       ok: false,
-      message: "댓글 수정 실패",
+      message: `${err} : 댓글 수정 실패`,
     });
   }
 });
@@ -307,11 +334,23 @@ router.delete(
 
       const { comment_id } = req.params;
 
-      const { user_id: commentUserId } = await free_comment.findOne({
+      const check_comment_id = await free_comment.findOne({
         where: { comment_id },
       });
 
-      if (user_id != commentUserId) {
+      if (check_comment_id == null) {
+        res.status(403).send({
+          ok: false,
+          message: "댓글이 없습니다",
+        });
+        return;
+      }
+
+      const { user_id: comment_user_id } = await free_comment.findOne({
+        where: { comment_id },
+      });
+
+      if (user_id != comment_user_id) {
         return res
           .status(401)
           .send({ ok: false, message: "작성자가 아닙니다" });
@@ -325,13 +364,12 @@ router.delete(
 
       res.status(200).send({
         ok: true,
-        message: "게시글 삭제 성공",
       });
-    } catch (error) {
-      console.error(error);
+    } catch (err) {
+      console.error(err);
       res.status(400).send({
         ok: false,
-        message: "게시글 삭제 실패",
+        message: `${err} : 게시글 삭제 실패`,
       });
     }
   }
