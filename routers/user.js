@@ -120,10 +120,46 @@ router.put("/user/:user_id", authMiddleware, async (req, res) => {
       });
       return;
     }
+
+    if (!password) {
+      res.status(403).send({
+        ok: false,
+        message: "패스워드 미입력",
+      });
+      return;
+    }
+
+    const dupEmail = await user.findOne({
+      where: { email },
+    });
+
+    if (dupEmail) {
+      res.status(403).send({
+        ok: false,
+        message: "이메일 중복",
+      });
+      return;
+    }
+
+    const dupNickname = await user.findOne({
+      where: { nickname },
+    });
+
+    if (dupNickname) {
+      res.status(403).send({
+        ok: false,
+        message: "닉네임 중복",
+      });
+      return;
+    }
+
+    const salt = await bcrypt.genSalt();
+    const hashedPassword = await bcrypt.hash(password, salt);
+
     await user.update(
       {
         email,
-        password,
+        password: hashedPassword,
         nickname,
       },
       {
@@ -187,9 +223,22 @@ router.post("/admin", authMiddleware, async (req, res) => {
   const { target_user_id } = req.body;
 
   try {
+    const check_target_user_id = await user.findOne({
+      where: { user_id: target_user_id },
+    });
+
+    if (check_target_user_id == null) {
+      res.status(403).send({
+        ok: false,
+        message: "존재하지 않는 유저입니다.",
+      });
+      return;
+    }
+
     const targetUniv = await university.findOne({
       where: { admin_id: user_id },
     });
+
     if (!targetUniv) {
       res.status(403).send({
         ok: false,

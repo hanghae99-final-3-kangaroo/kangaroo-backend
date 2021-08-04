@@ -3,7 +3,6 @@ const { election, university, country, vote } = require("../models");
 const router = express.Router(); // 라우터라고 선언한다.
 const Sequelize = require("sequelize");
 const authMiddleware = require("../middlewares/auth-middleware");
-const { DATE } = require("sequelize");
 
 router.post("/", authMiddleware, async (req, res) => {
   const { user_id } = res.locals.user;
@@ -14,10 +13,17 @@ router.post("/", authMiddleware, async (req, res) => {
       attributes: ["admin_id", "country_id"],
     });
 
+    if (candidates.length == 0) {
+      res.status(403).send({
+        ok: false,
+        message: "입후보자가 없습니다.",
+      });
+    }
+
     if (new Date(end_date) < new Date()) {
       res.status(403).send({
         ok: false,
-        message: "시간 설정이 잘못 되었습니다.",
+        message: "시간 설정이 잘 못 되었습니다.",
       });
       return;
     }
@@ -72,6 +78,15 @@ router.get("/:election_id", authMiddleware, async (req, res, next) => {
         { model: country, attributes: ["name"] },
       ],
     });
+
+    if (myElection == null) {
+      res.status(403).send({
+        ok: false,
+        message: "개최되지 않은 선거입니다.",
+      });
+      return;
+    }
+
     if (univ_id == null) {
       res.status(403).send({
         ok: false,
@@ -101,7 +116,7 @@ router.get("/:election_id", authMiddleware, async (req, res, next) => {
 router.put("/:election_id", authMiddleware, async (req, res) => {
   const { user_id } = res.locals.user;
   const { election_id } = req.params;
-  const { name, content, country_id, univ_id, candidates, end_date } = req.body;
+  const { name, content, country_id, univ_id, end_date } = req.body;
   try {
     const electionCheck = await election.findOne({
       where: { election_id },
@@ -139,11 +154,6 @@ router.put("/:election_id", authMiddleware, async (req, res) => {
         content,
         country_id,
         univ_id,
-        candidate_1: candidates[0],
-        candidate_2: candidates[1],
-        candidate_3: candidates[2],
-        candidate_4: candidates[3],
-        candidate_5: candidates[4],
         end_date,
       },
       {
@@ -162,13 +172,28 @@ router.put("/:election_id", authMiddleware, async (req, res) => {
   }
 });
 
-router.delete("/:election_id", async (req, res) => {
+router.delete("/:election_id", authMiddleware, async (req, res) => {
   const { election_id } = req.params;
+  const { univ_id, user_id } = res.locals.user;
+
   try {
+    const check_election = await election.findOne({
+      where: { election_id },
+    });
+
+    if (check_election == null) {
+      res.status(403).send({
+        ok: false,
+        message: "존재하지 않는 선거입니다.",
+      });
+      return;
+    }
+
     const { admin_id: univAdmin } = await university.findOne({
       where: { univ_id },
       attributes: ["admin_id"],
     });
+
     if (univAdmin == null) {
       res.status(403).send({
         ok: false,
@@ -206,6 +231,15 @@ router.post("/vote/:election_id", authMiddleware, async (req, res) => {
   const { election_id } = req.params;
   try {
     const myElection = await election.findOne({ where: { election_id } });
+
+    if (myElection == null) {
+      res.status(403).send({
+        ok: false,
+        message: "존재하지 않는 선거입니다.",
+      });
+      return;
+    }
+
     if (univ_id == null) {
       //내가 다니는 대학이 없을 때
       res.status(403).send({
