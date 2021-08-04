@@ -147,7 +147,7 @@ router.post("/email", async (req, res) => {
     });
 
     let mailOptions = await transporter.sendMail({
-      from: `Kangaroo`,
+      from: `UFO`,
       to: school_email,
       subject: "회원가입을 위한 인증번호를 입력해주세요.",
       html: emailTemplete,
@@ -168,6 +168,7 @@ router.post("/email", async (req, res) => {
     });
   }
 });
+
 router.post("/email/check", async (req, res) => {
   const { school_email, user_id } = req.body;
   const school_domain = school_email.split("@")[1];
@@ -196,4 +197,87 @@ router.post("/email/check", async (req, res) => {
   }
   res.status(403).send({ result: "not supported university" });
 });
+
+router.post("/find-id", async (req, res) => {
+  const { school_email } = req.body;
+  const result = await user.findOne({
+    where: { school_email },
+  });
+  if (result) {
+    res.status(200).send({ result, ok: true });
+    return;
+  }
+  res.status(403).send({ result: "no user", ok: false });
+});
+
+router.post("/find-pw", async (req, res) => {
+  try {
+    const { email } = req.body;
+    const isExist = await user.findOne({
+      where: { email },
+    });
+    if (isExist) {
+      let authCode = Math.random().toString().substr(2, 6);
+      let emailTemplete;
+      ejs.renderFile(
+        appDir + "/template/findpwmail.ejs",
+        { authCode },
+        function (err, data) {
+          if (err) {
+            console.log(err);
+          }
+          emailTemplete = data;
+        }
+      );
+
+      let transporter = nodemailer.createTransport({
+        service: "gmail",
+        host: "smtp.gmail.com",
+        port: 587,
+        secure: false,
+        auth: {
+          user: process.env.NODEMAILER_USER,
+          pass: process.env.NODEMAILER_PASS,
+        },
+      });
+
+      let mailOptions = await transporter.sendMail({
+        from: `UFO`,
+        to: email,
+        subject: "비밀번호 재설정을 위한 인증번호를 입력해주세요.",
+        html: emailTemplete,
+      });
+
+      transporter.sendMail(mailOptions, function (error, info) {
+        if (error) {
+          console.log(error);
+        }
+        console.log("Finish sending email : " + info.response);
+        res.send({ authCode });
+        transporter.close();
+      });
+    } else {
+      res.status(403).send({ result: "no user", ok: false });
+    }
+  } catch (error) {
+    res.status(400).send({
+      ok: false,
+      message: error + "email 전송 실패!",
+    });
+  }
+});
+
+router.post("/update-pw", async (req, res) => {
+  const { email, password } = req.body;
+  const result = await user.findOne({
+    where: { email },
+  });
+  if (result) {
+    result.update({ password });
+    res.status(200).send({ result, ok: true });
+    return;
+  }
+  res.status(403).send({ result: "no user", ok: false });
+});
+
 module.exports = router;
