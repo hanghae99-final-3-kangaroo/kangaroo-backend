@@ -4,7 +4,8 @@ const { free_board } = require("../models");
 const { free_comment } = require("../models");
 const { user } = require("../models");
 const authMiddleware = require("../middlewares/auth-middleware");
-
+const { Sequelize } = require("sequelize");
+const { or, like } = Sequelize.Op;
 const router = express.Router(); // 라우터라고 선언한다.
 
 // Post Part
