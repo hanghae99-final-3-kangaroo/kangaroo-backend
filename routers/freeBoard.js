@@ -237,7 +237,6 @@ router.get("/post/:post_id", likeMiddleware, async (req, res, next) => {
           where: {
             user_id: is_user.user_id,
             post_id,
-            is_free: true,
           },
         });
         if (my_like) {
