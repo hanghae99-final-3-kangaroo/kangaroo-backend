@@ -271,6 +271,13 @@ router.get("/post/:post_id", likeMiddleware, async (req, res, next) => {
         }
       }
       all_like = await free_like.findAll({ where: { post_id } });
+
+      if (result.img_list != null) {
+        result.img_list = img_list = result["img_list"].split(",");
+      } else {
+        result.img_list = [];
+      }
+
       res.status(200).send({
         result,
         like: {

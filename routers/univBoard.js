@@ -132,6 +132,13 @@ router.get("/post/:post_id", async (req, res, next) => {
         });
         await result.update({ view_count: result.view_count + 1 });
       }
+
+      // if (result.img_list != null) {
+      //   result.img_list = img_list = result["img_list"].split(",");
+      // } else {
+      //   result.img_list = [];
+      // }
+
       res.status(200).send({
         result,
         ok: true,
