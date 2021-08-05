@@ -47,7 +47,7 @@ router.post("/post", authMiddleware, async (req, res, next) => {
 // univ_board 글 조회
 router.get("/post", async (req, res, next) => {
   try {
-    const { pageSize, pageNum, category } = req.query;
+    const { pageSize, pageNum, category, univ_id } = req.query;
 
     let offset = 0;
 
@@ -59,13 +59,14 @@ router.get("/post", async (req, res, next) => {
 
     if (!category) {
       result = await univ_board.findAll({
+        where: { univ_id },
         offset: offset,
         limit: Number(pageSize),
         order: [["createdAt", "DESC"]],
       });
     } else {
       result = await univ_board.findAll({
-        where: { category },
+        where: { category, univ_id },
         offset: offset,
         limit: Number(pageSize),
         order: [["createdAt", "DESC"]],
