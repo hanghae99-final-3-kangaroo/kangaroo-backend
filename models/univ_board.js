@@ -41,14 +41,11 @@ module.exports = (sequelize, DataTypes) => {
         allowNull: false,
         type: Sequelize.BOOLEAN,
       },
-      // created_at: {
-      //   allowNull: false,
-      //   type: Sequelize.DATE,
-      // },
-      // updated_at: {
-      //   allowNull: false,
-      //   type: Sequelize.DATE,
-      // },
+      view_count: {
+        allowNull: false,
+        type: Sequelize.INTEGER,
+        defaultValue: 0,
+      },
     },
     {
       sequelize,
