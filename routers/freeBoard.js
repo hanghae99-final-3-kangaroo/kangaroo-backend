@@ -83,7 +83,62 @@ router.get("/post", async (req, res, next) => {
     });
   }
 });
+router.get("/search", async (req, res, next) => {
+  try {
+    const { pageSize, pageNum, category, country_id, sort } = req.query;
+    let { keyword } = req.query;
 
+    keyword = keyword.trim(); //trim으로 앞뒤 공백 제거
+    if (!keyword.length) {
+      //! 키워드에 공백만 존재
+      return res.status(400).json("invalid target");
+    }
+    keyword = keyword.replace(/\s\s+/gi, " "); //target 사이에 공백이 2개 이상 존재 > 하나의 공백으로 변환
+
+    let offset = 0;
+    if (pageNum > 1) {
+      offset = pageSize * (pageNum - 1);
+    }
+
+    const options = {
+      offset: offset,
+      where: {
+        [or]: [
+          { title: { [like]: `%${keyword}%` } },
+          { content: { [like]: `%${keyword}%` } },
+        ],
+      },
+      limit: Number(pageSize),
+      order: [["createdAt", "DESC"]],
+      raw: true,
+    };
+    if (category !== undefined) options.where.category = category;
+    if (country_id !== undefined) options.where.country_id = country_id;
+
+    const result = await free_board.findAll(options);
+
+    if (sort == "relative") {
+      for (let i = 0; i < result.length; i++) {
+        let rel = 0;
+        rel += result[i]["title"].split(keyword).length - 1;
+        rel += result[i]["content"].split(keyword).length - 1;
+        result[i]["rel"] = rel;
+      }
+      result.sort((a, b) => b.rel - a.rel); // rel의 값 순으로 내림차순 정렬.sort((a, b) => b.rel - a.rel); // rel의 값 순으로 내림차순 정렬
+    }
+
+    res.status(200).send({
+      result,
+      ok: true,
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(400).send({
+      ok: false,
+      message: `${err} : 게시글 조회 실패`,
+    });
+  }
+});
 // free_board 글 상세 조회
 router.get("/post/:post_id", async (req, res, next) => {
   try {
