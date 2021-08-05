@@ -106,15 +106,13 @@ router.get("/post/:post_id", async (req, res, next) => {
       ],
     });
 
-    if (result.length == 0) {
+    if (result == null) {
       res.status(403).send({
         ok: false,
         message: "게시글이 없습니다.",
       });
       return;
-    }
-
-    if (result != null) {
+    } else {
       if (req.cookies["u" + post_id] == undefined) {
         res.cookie("u" + post_id, getUserIP(req), {
           maxAge: 1200000,
