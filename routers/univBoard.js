@@ -115,6 +115,12 @@ router.get("/post/:post_id", async (req, res, next) => {
     }
 
     if (result != null) {
+      if (req.cookies["u" + post_id] == undefined) {
+        res.cookie("u" + post_id, getUserIP(req), {
+          maxAge: 1200000,
+        });
+        await result.update({ view_count: result.view_count + 1 });
+      }
       res.status(200).send({
         result,
         ok: true,
@@ -385,3 +391,8 @@ router.delete(
 );
 
 module.exports = router;
+
+function getUserIP(req) {
+  const addr = req.headers["x-forwarded-for"] || req.connection.remoteAddress;
+  return addr;
+}
