@@ -47,7 +47,13 @@ router.get("/post", likeMiddleware, async (req, res, next) => {
   try {
     const is_user = res.locals.user;
     const { pageSize, pageNum, category, country_id } = req.query;
-
+    if (!pageSize || !pageNum) {
+      res.status(403).send({
+        message: "pageSize, pageNum을 입력하세요.",
+        ok: false,
+      });
+      return;
+    }
     let offset = 0;
     if (pageNum > 1) {
       offset = pageSize * (pageNum - 1);
@@ -114,6 +120,13 @@ router.get("/post", likeMiddleware, async (req, res, next) => {
 router.get("/search", likeMiddleware, async (req, res, next) => {
   try {
     const { pageSize, pageNum, category, country_id, sort } = req.query;
+    if (!pageSize || !pageNum) {
+      res.status(403).send({
+        message: "pageSize, pageNum을 입력하세요.",
+        ok: false,
+      });
+      return;
+    }
     let { keyword } = req.query;
     const is_user = res.locals.user;
 
