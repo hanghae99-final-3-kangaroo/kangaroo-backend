@@ -3,8 +3,7 @@ const { user } = require("../models");
 
 module.exports = (req, res, next) => {
   const { authorization } = req.headers;
-
-  if (authorization == null) {
+  if (authorization==null || authorization == undefined || authorization == "null") {
     res.locals.user = null;
     next();
     return;
