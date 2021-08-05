@@ -42,6 +42,9 @@ module.exports = (sequelize, DataTypes) => {
         type: Sequelize.INTEGER,
         defaultValue: 0,
       },
+      img_list: {
+        type: Sequelize.STRING,
+      },
     },
     {
       sequelize,
