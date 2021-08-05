@@ -5,6 +5,7 @@ module.exports = (sequelize, DataTypes) => {
   class univ_board extends Model {
     static associate(models) {
       univ_board.hasMany(models.univ_comment, { foreignKey: "post_id" });
+      univ_board.hasMany(models.univ_like, { foreignKey: "post_id" });
       univ_board.belongsTo(models.user, { foreignKey: "user_id" });
       univ_board.belongsTo(models.university, { foreignKey: "univ_id" });
     }

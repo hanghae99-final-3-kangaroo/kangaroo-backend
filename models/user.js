@@ -9,6 +9,8 @@ module.exports = (sequelize, DataTypes) => {
       user.hasMany(models.univ_board, { foreignKey: "user_id" });
       user.hasMany(models.univ_comment, { foreignKey: "user_id" });
       // user.hasOne(models.university, { foreignKey: "user_id" }); // admin_id ~?
+      user.hasMany(models.univ_like, { foreignKey: "user_id" });
+      user.hasMany(models.free_like, { foreignKey: "user_id" });
       user.hasMany(models.vote, { foreignKey: "user_id" });
 
       user.belongsTo(models.country, { foreignKey: "country_id" });
