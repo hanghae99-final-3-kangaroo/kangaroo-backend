@@ -14,7 +14,7 @@ router.post("/post", authMiddleware, async (req, res, next) => {
     const { user } = res.locals;
     const user_id = user.user_id;
 
-    const { title, category, content, country_id } = req.body;
+    const { title, category, content, country_id, img_list } = req.body;
 
     const target = await free_board.create({
       user_id,
@@ -22,12 +22,15 @@ router.post("/post", authMiddleware, async (req, res, next) => {
       category,
       content,
       country_id,
+      // img_list: img_list.toString(),
     });
 
     const target_post_id = target.post_id;
     const result = await free_board.findOne({
       where: { post_id: target_post_id },
     });
+
+    // result.img_list = img_list;
 
     res.status(200).send({
       result,
@@ -104,6 +107,17 @@ router.get("/post", likeMiddleware, async (req, res, next) => {
         all_like: all_like.length,
       };
     }
+
+    // let img_list;
+    // for (i = 0; i < result.length; i++) {
+    //   img_list = result[i]["img_list"];
+    //   if (img_list != null) {
+    //     img_list = img_list.split(",");
+    //   } else {
+    //     img_list = [];
+    //   }
+    //   result[i].img_list = img_list;
+    // }
 
     res.status(200).send({
       result,
@@ -282,32 +296,30 @@ router.put("/post/:post_id", authMiddleware, async (req, res, next) => {
     const user_id = user.user_id;
 
     const { post_id } = req.params;
-    const { title, category, content, country_id } = req.body;
+    const { title, category, content, country_id, img_list } = req.body;
 
-    const { user_id: post_user_id } = await free_board.findOne({
+    const result = await free_board.findOne({
       where: { post_id },
-      attributes: ["user_id"],
     });
 
-    if (user_id !== post_user_id) {
+    if (user_id !== result.user_id) {
       return res.status(401).send({ ok: false, message: "작성자가 아닙니다" });
     }
 
     await free_board.update(
       {
-        user_id,
         title,
         category,
         content,
         country_id,
+        // img_list: img_list.toString(),
       },
       {
         where: { post_id },
       }
     );
-    const result = await free_board.findAll({
-      where: { post_id },
-    });
+
+    // result.img_list = img_list;
 
     res.status(200).send({
       result,
@@ -330,12 +342,19 @@ router.delete("/post/:post_id", authMiddleware, async (req, res, next) => {
 
     const { post_id } = req.params;
 
-    const { user_id: post_user_id } = await free_board.findOne({
+    const result = await free_board.findOne({
       where: { post_id },
-      attributes: ["user_id"],
     });
 
-    if (user_id !== post_user_id) {
+    if (result == null) {
+      res.status(403).send({
+        ok: false,
+        message: "없는 게시글 입니다.",
+      });
+      return;
+    }
+
+    if (user_id !== result.user_id) {
       return res.status(401).send({ ok: false, message: "작성자가 아닙니다" });
     }
 
@@ -345,8 +364,12 @@ router.delete("/post/:post_id", authMiddleware, async (req, res, next) => {
     await free_comment.destroy({
       where: { post_id },
     });
+    await free_like.destroy({
+      where: { post_id },
+    });
 
     res.status(200).send({
+      result,
       ok: true,
     });
   } catch (err) {

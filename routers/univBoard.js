@@ -1,11 +1,9 @@
 const express = require("express");
+
+const { univ_board, univ_comment, user, univ_like } = require("../models");
 const authMiddleware = require("../middlewares/auth-middleware");
-
-const { univ_board } = require("../models");
-const { univ_comment } = require("../models");
-const { user } = require("../models");
+const likeMiddleware = require("../middlewares/like-middleware");
 const { Sequelize } = require("sequelize");
-
 const router = express.Router(); // 라우터라고 선언한다.
 
 // Post Part
@@ -16,7 +14,7 @@ router.post("/post", authMiddleware, async (req, res, next) => {
     const { user } = res.locals;
     const user_id = user.user_id;
 
-    const { univ_id, title, category, content, is_fixed } = req.body;
+    const { univ_id, title, category, content, is_fixed, img_list } = req.body;
 
     const target = await univ_board.create({
       user_id,
@@ -25,12 +23,15 @@ router.post("/post", authMiddleware, async (req, res, next) => {
       category,
       content,
       is_fixed,
+      // img_list: img_list.toString(),
     });
 
     const target_post_id = target.post_id;
     const result = await univ_board.findOne({
       where: { post_id: target_post_id },
     });
+
+    // result.img_list = img_list;
 
     res.status(200).send({
       result,
@@ -79,6 +80,18 @@ router.get("/post", async (req, res, next) => {
     if (univ_id !== undefined) options.where.univ_id = univ_id;
 
     const result = await univ_board.findAll(options);
+
+    // let img_list;
+    // for (i = 0; i < result.length; i++) {
+    //   img_list = result[i]["img_list"];
+    //   if (img_list != null) {
+    //     img_list = img_list.split(",");
+    //   } else {
+    //     img_list = [];
+    //   }
+    //   result[i].img_list = img_list;
+    // }
+
     res.status(200).send({
       result,
       ok: true,
@@ -140,34 +153,31 @@ router.put("/post/:post_id", authMiddleware, async (req, res, next) => {
     const user_id = user.user_id;
 
     const { post_id } = req.params;
-    const { univ_id, title, category, content, is_fixed } = req.body;
+    const { univ_id, title, category, content, is_fixed, img_list } = req.body;
 
-    const { user_id: post_user_id } = await univ_board.findOne({
+    const result = await univ_board.findOne({
       where: { post_id },
-      attributes: ["user_id"],
     });
 
-    if (user_id !== post_user_id) {
+    if (user_id !== result.user_id) {
       return res.status(401).send({ ok: false, message: "작성자가 아닙니다" });
     }
 
     await univ_board.update(
       {
-        user_id,
         univ_id,
         title,
         category,
         content,
         is_fixed,
+        // img_list: img_list.toString(),
       },
       {
         where: { post_id },
       }
     );
 
-    const result = await univ_board.findAll({
-      where: { post_id },
-    });
+    // result.img_list = img_list;
 
     res.status(200).send({
       result,
@@ -190,12 +200,19 @@ router.delete("/post/:post_id", authMiddleware, async (req, res, next) => {
 
     const { post_id } = req.params;
 
-    const { user_id: post_user_id } = await univ_board.findOne({
+    const result = await univ_board.findOne({
       where: { post_id },
-      attributes: ["user_id"],
     });
 
-    if (user_id !== post_user_id) {
+    if (result == null) {
+      res.status(403).send({
+        ok: false,
+        message: "없는 게시글 입니다.",
+      });
+      return;
+    }
+
+    if (user_id !== result.user_id) {
       return res.status(401).send({ ok: false, message: "작성자가 아닙니다" });
     }
 
@@ -205,8 +222,12 @@ router.delete("/post/:post_id", authMiddleware, async (req, res, next) => {
     await univ_comment.destroy({
       where: { post_id },
     });
+    await univ_like.destroy({
+      where: { post_id },
+    });
 
     res.status(200).send({
+      result,
       ok: true,
     });
   } catch (err) {
