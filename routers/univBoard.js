@@ -4,6 +4,7 @@ const authMiddleware = require("../middlewares/auth-middleware");
 const { univ_board } = require("../models");
 const { univ_comment } = require("../models");
 const { user } = require("../models");
+const { Sequelize } = require("sequelize");
 
 const router = express.Router(); // 라우터라고 선언한다.
 
@@ -55,23 +56,29 @@ router.get("/post", async (req, res, next) => {
       offset = pageSize * (pageNum - 1);
     }
 
-    let result;
+    const options = {
+      subQuery: false,
+      limit: Number(pageSize),
+      order: [["createdAt", "DESC"]],
+      offset: offset,
+      where: {},
+      attributes: {
+        include: [
+          [Sequelize.fn("COUNT", Sequelize.col("comment_id")), "coment_count"],
+        ],
+      },
+      include: [
+        {
+          model: univ_comment,
+          attributes: [],
+        },
+      ],
+      group: ["post_id"],
+    };
+    if (category !== undefined) options.where.category = category;
+    if (univ_id !== undefined) options.where.univ_id = univ_id;
 
-    if (!category) {
-      result = await univ_board.findAll({
-        where: { univ_id },
-        offset: offset,
-        limit: Number(pageSize),
-        order: [["createdAt", "DESC"]],
-      });
-    } else {
-      result = await univ_board.findAll({
-        where: { category, univ_id },
-        offset: offset,
-        limit: Number(pageSize),
-        order: [["createdAt", "DESC"]],
-      });
-    }
+    const result = await univ_board.findAll(options);
     res.status(200).send({
       result,
       ok: true,

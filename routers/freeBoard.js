@@ -47,31 +47,36 @@ router.post("/post", authMiddleware, async (req, res, next) => {
 // free_board 글 조회
 router.get("/post", async (req, res, next) => {
   try {
-    const { pageSize, pageNum, category } = req.query;
+    const { pageSize, pageNum, category, country_id } = req.query;
 
     let offset = 0;
-
     if (pageNum > 1) {
       offset = pageSize * (pageNum - 1);
     }
 
-    let result;
+    const options = {
+      subQuery: false,
+      limit: Number(pageSize),
+      order: [["createdAt", "DESC"]],
+      offset: offset,
+      where: {},
+      attributes: {
+        include: [
+          [Sequelize.fn("COUNT", Sequelize.col("comment_id")), "coment_count"],
+        ],
+      },
+      include: [
+        {
+          model: free_comment,
+          attributes: [],
+        },
+      ],
+      group: ["post_id"],
+    };
+    if (category !== undefined) options.where.category = category;
+    if (country_id !== undefined) options.where.country_id = country_id;
 
-    if (!category) {
-      result = await free_board.findAll({
-        offset: offset,
-        limit: Number(pageSize),
-        order: [["createdAt", "DESC"]],
-      });
-    } else {
-      result = await free_board.findAll({
-        where: { category },
-        offset: offset,
-        limit: Number(pageSize),
-        order: [["createdAt", "DESC"]],
-      });
-    }
-
+    const result = await free_board.findAll(options);
     res.status(200).send({
       result,
       ok: true,
@@ -102,6 +107,7 @@ router.get("/search", async (req, res, next) => {
     }
 
     const options = {
+      subQuery: false,
       offset: offset,
       where: {
         [or]: [
@@ -111,6 +117,18 @@ router.get("/search", async (req, res, next) => {
       },
       limit: Number(pageSize),
       order: [["createdAt", "DESC"]],
+      attributes: {
+        include: [
+          [Sequelize.fn("COUNT", Sequelize.col("comment_id")), "coment_count"],
+        ],
+      },
+      include: [
+        {
+          model: free_comment,
+          attributes: [],
+        },
+      ],
+      group: ["post_id"],
       raw: true,
     };
     if (category !== undefined) options.where.category = category;
