@@ -5,7 +5,7 @@ const authMiddleware = require("../middlewares/auth-middleware");
 const likeMiddleware = require("../middlewares/like-middleware");
 const { Sequelize } = require("sequelize");
 const router = express.Router(); // 라우터라고 선언한다.
-
+const { or, like } = Sequelize.Op;
 // Post Part
 
 // free_board 글 작성
@@ -111,10 +111,11 @@ router.get("/post", likeMiddleware, async (req, res, next) => {
     });
   }
 });
-router.get("/search", async (req, res, next) => {
+router.get("/search", likeMiddleware, async (req, res, next) => {
   try {
     const { pageSize, pageNum, category, country_id, sort } = req.query;
     let { keyword } = req.query;
+    const is_user = res.locals.user;
 
     keyword = keyword.trim(); //trim으로 앞뒤 공백 제거
     if (!keyword.length) {
@@ -132,9 +133,9 @@ router.get("/search", async (req, res, next) => {
       subQuery: false,
       offset: offset,
       where: {
-        [Sequelize.Op.or]: [
-          { title: { [Sequelize.Op.like]: `%${keyword}%` } },
-          { content: { [Sequelize.Op.llike]: `%${keyword}%` } },
+        [or]: [
+          { title: { [like]: `%${keyword}%` } },
+          { content: { [like]: `%${keyword}%` } },
         ],
       },
       limit: Number(pageSize),
@@ -158,6 +159,27 @@ router.get("/search", async (req, res, next) => {
 
     const result = await free_board.findAll(options);
 
+    for (let i = 0; i < result.length; i++) {
+      let is_like = false;
+      if (is_user != null) {
+        my_like = await free_like.findOne({
+          where: {
+            user_id: is_user.user_id,
+            post_id: result[i].post_id,
+          },
+        });
+        if (my_like) {
+          is_like = true;
+        }
+      }
+      all_like = await free_like.findAll({
+        where: { post_id: result[i].post_id },
+      });
+      result[i].like = {
+        is_like,
+        all_like: all_like.length,
+      };
+    }
     if (sort == "relative") {
       for (let i = 0; i < result.length; i++) {
         let rel = 0;
@@ -324,6 +346,39 @@ router.delete("/post/:post_id", authMiddleware, async (req, res, next) => {
   }
 });
 
+// free_board 글 좋아요
+router.get("/post/:post_id/like", async (req, res, next) => {
+  try {
+    const user_id = 1;
+    const { post_id } = req.params;
+    const my_like = await free_like.findOne({
+      where: { post_id, user_id },
+    });
+
+    if (my_like == null) {
+      await free_like.create({
+        post_id,
+        user_id,
+      });
+      res.status(200).send({
+        message: "liked post",
+        ok: true,
+      });
+    } else {
+      await my_like.destroy();
+      res.status(200).send({
+        message: "disliked post",
+        ok: true,
+      });
+    }
+  } catch (err) {
+    console.error(err);
+    res.status(400).send({
+      ok: false,
+      message: `${err} : 좋아요/좋아요 취소 실패`,
+    });
+  }
+});
 // Comment Part
 
 // free_comment 작성
@@ -365,39 +420,6 @@ router.post("/comment", authMiddleware, async (req, res, next) => {
   }
 });
 
-// free_board 글 좋아요
-router.get("/post/:post_id/like", authMiddleware, async (req, res, next) => {
-  try {
-    const { user_id } = res.locals.user;
-    const { post_id } = req.params;
-    const my_like = await free_like.findOne({
-      where: { post_id, user_id },
-    });
-
-    if (my_like == null) {
-      await free_like.create({
-        post_id,
-        user_id,
-      });
-      res.status(200).send({
-        message: "liked post",
-        ok: true,
-      });
-    } else {
-      await my_like.destroy();
-      res.status(200).send({
-        message: "disliked post",
-        ok: true,
-      });
-    }
-  } catch (err) {
-    console.error(err);
-    res.status(400).send({
-      ok: false,
-      message: `${err} : 좋아요/좋아요 취소 실패`,
-    });
-  }
-});
 // free_comment 조회
 router.get("/comment/:post_id", async (req, res, next) => {
   try {
