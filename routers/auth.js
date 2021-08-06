@@ -24,15 +24,22 @@ router.post(
     failureRedirect: "/auth/fail",
   }),
   async function (req, res) {
-    const user = req.user;
-    const token = jwt.sign({ user_id: user.user_id }, "hanghaekangaroo", {
-      expiresIn: "1200s",
-    });
-    const refresh_token = jwt.sign({}, "hanghaekangaroo", {
-      expiresIn: "14d",
-    });
-    await user.update({ refresh_token }, { where: { user_id: user.user_id } });
-    res.status(200).send({ message: "success", token: token });
+    try {
+      const user = req.user;
+      const token = jwt.sign({ user_id: user.user_id }, "hanghaekangaroo", {
+        expiresIn: "1200s",
+      });
+      const refresh_token = jwt.sign({}, "hanghaekangaroo", {
+        expiresIn: "14d",
+      });
+      await user.update(
+        { refresh_token },
+        { where: { user_id: user.user_id } }
+      );
+      res.status(200).send({ message: "success", token: token });
+    } catch (err) {
+      res.status(400).send({ message: err + " : login failed" });
+    }
   }
 );
 router.get(
