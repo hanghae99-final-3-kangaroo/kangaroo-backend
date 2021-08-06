@@ -26,7 +26,7 @@ router.post(
   async function (req, res) {
     const user = req.user;
     const token = jwt.sign({ user_id: user.user_id }, "hanghaekangaroo", {
-      expiresIn: "20s",
+      expiresIn: "1200s",
     });
     const refresh_token = jwt.sign({}, "hanghaekangaroo", {
       expiresIn: "14d",
