@@ -9,6 +9,9 @@ const nodemailer = require("nodemailer");
 const { university, user } = require("../models");
 const Sequelize = require("sequelize");
 const Op = Sequelize.Op;
+const consumer = require("../src/consumer");
+const Listener = require("../src/Listener");
+const MailSender = require("../src/MailSender");
 
 router.get("/logout", async (req, res, next) => {
   req.logout();
@@ -132,49 +135,19 @@ router.post("/email", async (req, res) => {
       res.status(403).send({ ok: false, message: "already existing email" });
       return;
     }
-    let authCode = Math.random().toString().substr(2, 6);
-    let emailTemplete;
-    ejs.renderFile(
-      appDir + "/template/authmail.ejs",
-      { authCode },
-      function (err, data) {
-        if (err) {
-          console.log(err);
-        }
-        emailTemplete = data;
-      }
-    );
-
-    let transporter = nodemailer.createTransport({
-      service: "gmail",
-      host: "smtp.gmail.com",
-      port: 587,
-      secure: false,
-      auth: {
-        user: process.env.NODEMAILER_USER,
-        pass: process.env.NODEMAILER_PASS,
-      },
+    const authCode = Math.random().toString().substr(2, 6);
+    const mailSender = new MailSender();
+    const listener = new Listener(mailSender);
+    listener.listen({
+      targetEmail: school_email,
+      type: "auth",
+      authCode,
     });
-
-    let mailOptions = await transporter.sendMail({
-      from: `UFO`,
-      to: school_email,
-      subject: "회원가입을 위한 인증번호를 입력해주세요.",
-      html: emailTemplete,
-    });
-
-    transporter.sendMail(mailOptions, function (error, info) {
-      if (error) {
-        console.log(error);
-      }
-      console.log("Finish sending email : " + info.response);
-      res.send({ authCode });
-      transporter.close();
-    });
-  } catch (errer) {
+    res.status(200).send({ authCode });
+  } catch (err) {
     res.status(400).send({
       ok: false,
-      message: "email 전송 실패!",
+      message: err + " : email 전송 실패!",
     });
   }
 });
@@ -227,45 +200,15 @@ router.post("/find-pw", async (req, res) => {
       where: { email },
     });
     if (isExist) {
-      let authCode = Math.random().toString().substr(2, 6);
-      let emailTemplete;
-      ejs.renderFile(
-        appDir + "/template/findpwmail.ejs",
-        { authCode },
-        function (err, data) {
-          if (err) {
-            console.log(err);
-          }
-          emailTemplete = data;
-        }
-      );
-
-      let transporter = nodemailer.createTransport({
-        service: "gmail",
-        host: "smtp.gmail.com",
-        port: 587,
-        secure: false,
-        auth: {
-          user: process.env.NODEMAILER_USER,
-          pass: process.env.NODEMAILER_PASS,
-        },
+      const authCode = Math.random().toString().substr(2, 6);
+      const mailSender = new MailSender();
+      const listener = new Listener(mailSender);
+      listener.listen({
+        targetEmail: email,
+        type: "find",
+        authCode,
       });
-
-      let mailOptions = await transporter.sendMail({
-        from: `UFO`,
-        to: email,
-        subject: "비밀번호 재설정을 위한 인증번호를 입력해주세요.",
-        html: emailTemplete,
-      });
-
-      transporter.sendMail(mailOptions, function (error, info) {
-        if (error) {
-          console.log(error);
-        }
-        console.log("Finish sending email : " + info.response);
-        res.send({ authCode });
-        transporter.close();
-      });
+      res.status(200).send({ authCode });
     } else {
       res.status(403).send({ result: "no user", ok: false });
     }
