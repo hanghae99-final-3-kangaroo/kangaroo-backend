@@ -29,11 +29,15 @@ router.post(
   async function (req, res) {
     try {
       const user = req.user;
-      const token = jwt.sign({ user_id: user.user_id }, "hanghaekangaroo", {
-        expiresIn: "1200s",
-      });
-      const refresh_token = jwt.sign({}, "hanghaekangaroo", {
-        expiresIn: "14d",
+      const token = jwt.sign(
+        { user_id: user.user_id },
+        process.env.JWT_SECRET,
+        {
+          expiresIn: process.env.JWT_ACCESS_EXPIRE,
+        }
+      );
+      const refresh_token = jwt.sign({}, process.env.JWT_SECRET, {
+        expiresIn: process.env.JWT_REFRESH_EXPIRE,
       });
       await user.update(
         { refresh_token },
@@ -58,7 +62,7 @@ router.get(
   passport.authenticate("google"),
   function (req, res) {
     const user = req.user;
-    const token = jwt.sign({ user_id: user.user_id }, "hanghaekangaroo");
+    const token = jwt.sign({ user_id: user.user_id }, process.env.JWT_SECRET);
     res.status(200).send({
       message: "google login succeed",
       token: token,
@@ -78,7 +82,7 @@ router.get(
   passport.authenticate("kakao"),
   function (req, res) {
     const user = req.user;
-    const token = jwt.sign({ user_id: user.user_id }, "hanghaekangaroo");
+    const token = jwt.sign({ user_id: user.user_id }, process.env.JWT_SECRET);
     res.status(200).send({
       message: "kakao login succeed",
       token: token,
@@ -102,7 +106,7 @@ router.get(
   }),
   function (req, res) {
     const user = req.user;
-    const token = jwt.sign({ user_id: user.user_id }, "hanghaekangaroo");
+    const token = jwt.sign({ user_id: user.user_id }, process.env.JWT_SECRET);
     res.status(200).send({
       message: "facebook login succeed",
       token: token,

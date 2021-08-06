@@ -24,7 +24,7 @@ module.exports = (req, res, next) => {
     const myToken = verifyToken(tokenValue);
     if (myToken == "jwt expired") {
       // access token 만료
-      const userInfo = jwt.decode(tokenValue, "hanghaeKangaroo");
+      const userInfo = jwt.decode(tokenValue, process.env.JWT_SECRET);
       console.log(userInfo);
       const user_id = userInfo.user_id;
       let refresh_token;
@@ -36,16 +36,16 @@ module.exports = (req, res, next) => {
         } else {
           const myNewToken = jwt.sign(
             { user_id: u.user_id },
-            "hanghaekangaroo",
+            process.env.JWT_SECRET,
             {
-              expiresIn: "1200s",
+              expiresIn: process.env.JWT_ACCESS_EXPIRE,
             }
           );
           res.send({ message: "new token", myNewToken });
         }
       });
     } else {
-      const { user_id } = jwt.verify(tokenValue, "hanghaekangaroo");
+      const { user_id } = jwt.verify(tokenValue, process.env.JWT_SECRET);
       user.findOne({ where: user_id }).then((u) => {
         res.locals.user = u;
         next();
@@ -58,7 +58,7 @@ module.exports = (req, res, next) => {
 
 function verifyToken(token) {
   try {
-    return jwt.verify(token, "hanghaekangaroo");
+    return jwt.verify(token, process.env.JWT_SECRET);
   } catch (error) {
     return error.message;
   }

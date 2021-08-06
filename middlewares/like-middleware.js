@@ -3,7 +3,11 @@ const { user } = require("../models");
 
 module.exports = (req, res, next) => {
   const { authorization } = req.headers;
-  if (authorization==null || authorization == undefined || authorization == "null") {
+  if (
+    authorization == null ||
+    authorization == undefined ||
+    authorization == "null"
+  ) {
     res.locals.user = null;
     next();
     return;
@@ -12,7 +16,7 @@ module.exports = (req, res, next) => {
   const [tokenType, tokenValue] = authorization.split(" ");
 
   try {
-    const { user_id } = jwt.verify(tokenValue, "hanghaekangaroo");
+    const { user_id } = jwt.verify(tokenValue, process.env.JWT_SECRET);
     user.findOne({ where: user_id }).then((u) => {
       res.locals.user = u;
       next();
