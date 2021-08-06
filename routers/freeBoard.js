@@ -229,7 +229,21 @@ router.get("/search", likeMiddleware, async (req, res, next) => {
     });
   }
 });
-
+router.get("/post/:post_id/view_count", async (req, res, next) => {
+  try {
+    const { post_id } = req.params;
+    await free_board.increment({ view_count: +1 }, { where: { post_id } });
+    res.status(200).send({
+      ok: true,
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(400).send({
+      ok: false,
+      message: `${err} : 조회수 증가 실패`,
+    });
+  }
+});
 // free_board 글 상세 조회
 router.get("/post/:post_id", likeMiddleware, async (req, res, next) => {
   try {
@@ -252,12 +266,6 @@ router.get("/post/:post_id", likeMiddleware, async (req, res, next) => {
       });
       return;
     } else {
-      if (req.cookies["f" + post_id] == undefined) {
-        res.cookie("f" + post_id, getUserIP(req), {
-          maxAge: 1200000,
-        });
-        await result.update({ view_count: result.view_count + 1 });
-      }
       let is_like = false;
       if (is_user != null) {
         my_like = await free_like.findOne({
@@ -594,8 +602,3 @@ router.delete(
 );
 
 module.exports = router;
-
-function getUserIP(req) {
-  const addr = req.headers["x-forwarded-for"] || req.connection.remoteAddress;
-  return addr;
-}

@@ -105,6 +105,22 @@ router.get("/post", async (req, res, next) => {
   }
 });
 
+router.get("/post/:post_id/view_count", async (req, res, next) => {
+  try {
+    const { post_id } = req.params;
+    await univ_board.increment({ view_count: +1 }, { where: { post_id } });
+    res.status(200).send({
+      ok: true,
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(400).send({
+      ok: false,
+      message: `${err} : 조회수 증가 실패`,
+    });
+  }
+});
+
 // univ_board 글 상세 조회
 router.get("/post/:post_id", async (req, res, next) => {
   try {
@@ -126,13 +142,6 @@ router.get("/post/:post_id", async (req, res, next) => {
       });
       return;
     } else {
-      if (req.cookies["u" + post_id] == undefined) {
-        res.cookie("u" + post_id, getUserIP(req), {
-          maxAge: 1200000,
-        });
-        await result.update({ view_count: result.view_count + 1 });
-      }
-
       // if (result.img_list != null) {
       //   result.img_list = img_list = result["img_list"].split(",");
       // } else {

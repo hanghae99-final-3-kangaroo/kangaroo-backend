@@ -40,8 +40,6 @@ app.use(
 app.use(passport.initialize());
 app.use(passport.session());
 
-const cookieParser = require("cookie-parser");
-app.use(cookieParser());
 app.use(express.static("public"));
 const userRouter = require("./routers/user");
 const freeBoardRouter = require("./routers/freeBoard");
