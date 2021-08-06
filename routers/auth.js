@@ -23,12 +23,15 @@ router.post(
     session: false,
     failureRedirect: "/auth/fail",
   }),
-  function (req, res) {
+  async function (req, res) {
     const user = req.user;
-    const token = jwt.sign({ user_id: user.user_id }, process.env.JWT_SECRET, {
-      expiresIn: "1200s",
+    const token = jwt.sign({ user_id: user.user_id }, "hanghaekangaroo", {
+      expiresIn: "20s",
     });
-
+    const refresh_token = jwt.sign({}, "hanghaekangaroo", {
+      expiresIn: "14d",
+    });
+    await user.update({ refresh_token }, { where: { user_id: user.user_id } });
     res.status(200).send({ message: "success", token: token });
   }
 );

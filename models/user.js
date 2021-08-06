@@ -39,6 +39,7 @@ module.exports = (sequelize, DataTypes) => {
       country_id: Sequelize.INTEGER,
       univ_id: Sequelize.INTEGER,
       provider: Sequelize.STRING,
+      refresh_token: Sequelize.STRING,
     },
     {
       sequelize,
