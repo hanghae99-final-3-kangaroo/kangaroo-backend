@@ -265,7 +265,7 @@ router.post("/comment", authMiddleware, async (req, res, next) => {
 
     const { post_id, content } = req.body;
 
-    const check_post_id = await free_board.findOne({
+    const check_post_id = await univ_board.findOne({
       where: { post_id },
     });
 
