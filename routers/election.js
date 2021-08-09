@@ -98,7 +98,9 @@ router.post("/", authMiddleware, imageUpload.array("img"), async (req, res) => {
     let i = 0;
     candidates.forEach(function (c) {
       c.election_id = createdElection.election_id;
-      c.photo = req.files[i].filename;
+      if (req.files[i]) {
+        c.photo = req.files[i].filename;
+      }
       i += 1;
     });
     await candidate.bulkCreate(candidates);
