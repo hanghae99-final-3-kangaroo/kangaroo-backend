@@ -244,7 +244,7 @@ router.get("/post/:post_id/view_count", async (req, res, next) => {
 });
 
 // univ_board 글 상세 조회
-router.get("/post/:post_id", async (req, res, next) => {
+router.get("/post/:post_id", authMiddleware, async (req, res, next) => {
   try {
     const { post_id } = req.params;
     const { user_id } = res.locals.user;
