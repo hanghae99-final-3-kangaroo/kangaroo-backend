@@ -4,6 +4,7 @@ const { Model } = require("sequelize");
 module.exports = (sequelize, DataTypes) => {
   class candidate extends Model {
     static associate(models) {
+      candidate.hasMany(models.vote, { foreignKey: "candidate_id" });
       candidate.belongsTo(models.election, { foreignKey: "election_id" });
     }
   }

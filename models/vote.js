@@ -1,13 +1,12 @@
 const Sequelize = require("sequelize");
 const { Model } = require("sequelize");
-const election = require("./election");
-const free_board = require("./free_board");
 
 module.exports = (sequelize, DataTypes) => {
   class vote extends Model {
     static associate(models) {
       vote.belongsTo(models.user, { foreignKey: "user_id" });
       vote.belongsTo(models.election, { foreignKey: "election_id" });
+      vote.belongsTo(models.candidate, { foreignKey: "candidate_id" });
     }
   }
   vote.init(
@@ -26,7 +25,7 @@ module.exports = (sequelize, DataTypes) => {
         allowNull: false,
         type: Sequelize.INTEGER,
       },
-      vote_num: {
+      candidate_id: {
         allowNull: false,
         type: Sequelize.INTEGER,
       },

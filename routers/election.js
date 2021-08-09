@@ -5,17 +5,18 @@ const Sequelize = require("sequelize");
 const authMiddleware = require("../middlewares/auth-middleware");
 const multer = require("multer");
 const randomstring = require("randomstring");
+const fs = require("fs");
 
 const imageUpload = multer({
   storage: multer.diskStorage({
     destination: (req, file, cb) => {
-      cb(null, `${__dirname}/../public`); // public 폴더를 지정합니다.
+      cb(null, `${__dirname}/../public`); //저장할 폴더
     },
     filename: (req, file, cb) => {
-      var fileName = randomstring.generate(25); // 파일 이름입니다. 저는 랜덤 25자로 설정했습니다.
+      var fileName = randomstring.generate(25); // 파일 이름 - 랜덤
       var mimeType;
       switch (
-        file.mimetype // 파일 타입을 거릅니다.
+        file.mimetype // 파일 타입
       ) {
         case "image/jpeg":
           mimeType = "jpg";
@@ -33,11 +34,11 @@ const imageUpload = multer({
           mimeType = "jpg";
           break;
       }
-      cb(null, fileName + "." + mimeType); // 파일 이름 + 파일 타입 형태로 이름을 바꿉니다.
+      cb(null, fileName + "." + mimeType); // 파일 이름 + 파일 타입 형태로 이름 설정
     },
   }),
   limits: {
-    fileSize: 5 * 1024 * 1024, // 크기제한입니다. 기준은 byte 입니다.
+    fileSize: 5 * 1024 * 1024, // 크기제한 : 5byte
   },
 });
 
@@ -264,7 +265,6 @@ router.put("/:election_id", authMiddleware, async (req, res) => {
 router.delete("/:election_id", authMiddleware, async (req, res) => {
   const { election_id } = req.params;
   const { univ_id, user_id } = res.locals.user;
-
   try {
     const check_election = await election.findOne({
       where: { election_id },
@@ -296,9 +296,11 @@ router.delete("/:election_id", authMiddleware, async (req, res) => {
       });
       return;
     }
-    await candidate.destroy({
-      where: { election_id },
-    });
+    const myCandidates = await candidate.findAll({ where: { election_id } });
+    for (myCandidate of myCandidates) {
+      fs.unlink("/public" + myCandidate.photo);
+      myCandidate.destroy();
+    }
     await vote.destroy({
       where: { election_id },
     });
@@ -318,7 +320,7 @@ router.delete("/:election_id", authMiddleware, async (req, res) => {
 });
 
 router.post("/vote/:election_id", authMiddleware, async (req, res) => {
-  const { vote_num } = req.body;
+  const { candidate_id } = req.body;
   const { user_id, univ_id } = res.locals.user;
   const { election_id } = req.params;
   try {
@@ -346,6 +348,13 @@ router.post("/vote/:election_id", authMiddleware, async (req, res) => {
         message: "내가 재학중인 대학교가 아닙니다.",
       });
       return;
+    } else if (myElection.start_date > new Date()) {
+      //투표 기간이 지났을 때
+      res.status(403).send({
+        ok: false,
+        message: "투표 기간이 시작하지 않았습니다.",
+      });
+      return;
     } else if (myElection.end_date < new Date()) {
       //투표 기간이 지났을 때
       res.status(403).send({
@@ -367,7 +376,11 @@ router.post("/vote/:election_id", authMiddleware, async (req, res) => {
 
     //이미 투표했을 때
 
-    const createdVote = await vote.create({ user_id, election_id, vote_num });
+    const createdVote = await vote.create({
+      user_id,
+      election_id,
+      candidate_id,
+    });
     res.status(200).send({
       ok: true,
       result: createdVote,
@@ -411,13 +424,13 @@ router.get("/:election_id/result", authMiddleware, async (req, res) => {
 
     const countVote = await vote.findAll({
       attributes: [
-        "vote_num",
-        [Sequelize.fn("count", Sequelize.col("vote_num")), "count"],
+        "candidate_id",
+        [Sequelize.fn("count", Sequelize.col("candidate_id")), "count"],
       ],
       where: {
         election_id,
       },
-      group: ["vote_num"],
+      group: ["candidate_id"],
     });
     res.status(200).send({
       ok: true,
