@@ -1,11 +1,11 @@
 const Sequelize = require("sequelize");
 const { Model } = require("sequelize");
-const free_board = require("./free_board");
 
 module.exports = (sequelize, DataTypes) => {
   class election extends Model {
     static associate(models) {
       election.hasMany(models.vote, { foreignKey: "election_id" });
+      election.hasMany(models.candidate, { foreignKey: "election_id" });
       election.belongsTo(models.country, { foreignKey: "country_id" });
       election.belongsTo(models.university, { foreignKey: "univ_id" });
     }
@@ -34,14 +34,10 @@ module.exports = (sequelize, DataTypes) => {
         allowNull: false,
         type: Sequelize.STRING,
       },
-      candidate_1: {
+      start_date: {
         allowNull: false,
-        type: Sequelize.STRING,
+        type: Sequelize.DATE,
       },
-      candidate_2: Sequelize.STRING,
-      candidate_3: Sequelize.STRING,
-      candidate_4: Sequelize.STRING,
-      candidate_5: Sequelize.STRING,
       end_date: {
         allowNull: false,
         type: Sequelize.DATE,

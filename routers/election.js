@@ -1,12 +1,49 @@
 const express = require("express");
-const { election, university, country, vote } = require("../models");
+const { election, university, country, vote, candidate } = require("../models");
 const router = express.Router(); // 라우터라고 선언한다.
 const Sequelize = require("sequelize");
 const authMiddleware = require("../middlewares/auth-middleware");
+const multer = require("multer");
+const randomstring = require("randomstring");
 
-router.post("/", authMiddleware, async (req, res) => {
+const imageUpload = multer({
+  storage: multer.diskStorage({
+    destination: (req, file, cb) => {
+      cb(null, `${__dirname}/../public`); // public 폴더를 지정합니다.
+    },
+    filename: (req, file, cb) => {
+      var fileName = randomstring.generate(25); // 파일 이름입니다. 저는 랜덤 25자로 설정했습니다.
+      var mimeType;
+      switch (
+        file.mimetype // 파일 타입을 거릅니다.
+      ) {
+        case "image/jpeg":
+          mimeType = "jpg";
+          break;
+        case "image/png":
+          mimeType = "png";
+          break;
+        case "image/gif":
+          mimeType = "gif";
+          break;
+        case "image/bmp":
+          mimeType = "bmp";
+          break;
+        default:
+          mimeType = "jpg";
+          break;
+      }
+      cb(null, fileName + "." + mimeType); // 파일 이름 + 파일 타입 형태로 이름을 바꿉니다.
+    },
+  }),
+  limits: {
+    fileSize: 5 * 1024 * 1024, // 크기제한입니다. 기준은 byte 입니다.
+  },
+});
+
+router.post("/", authMiddleware, imageUpload.array("img"), async (req, res) => {
   const { user_id } = res.locals.user;
-  const { name, content, univ_id, candidates, end_date } = req.body;
+  const { name, content, univ_id, candidates, end_date, start_date } = req.body;
   try {
     const { admin_id: univAdmin, country_id } = await university.findOne({
       where: { univ_id },
@@ -20,10 +57,17 @@ router.post("/", authMiddleware, async (req, res) => {
       });
     }
 
+    if (new Date(start_date) > new Date(end_date)) {
+      res.status(403).send({
+        ok: false,
+        message: "시작 시간 설정 종료 시간보다 뒤입니다.",
+      });
+      return;
+    }
     if (new Date(end_date) < new Date()) {
       res.status(403).send({
         ok: false,
-        message: "시간 설정이 잘 못 되었습니다.",
+        message: "종료 시간 설정이 잘못 되었습니다.",
       });
       return;
     }
@@ -47,33 +91,24 @@ router.post("/", authMiddleware, async (req, res) => {
       content,
       country_id,
       univ_id,
-      candidate_1: candidates[0],
-      candidate_2: candidates[1],
-      candidate_3: candidates[2],
-      candidate_4: candidates[3],
-      candidate_5: candidates[4],
+      start_date,
       end_date,
     });
-
+    let i = 0;
+    candidates.forEach(function (c) {
+      c.election_id = createdElection.election_id;
+      c.photo = req.files[i].filename;
+      i += 1;
+    });
+    await candidate.bulkCreate(candidates);
     const myElection = await election.findOne({
       where: { election_id: createdElection.election_id },
       include: [
         { model: university, attributes: ["name"] },
         { model: country, attributes: ["name"] },
+        { model: candidate },
       ],
-      raw: true,
     });
-
-    myElection.candidates = [myElection.candidate_1, myElection.candidate_2];
-    if (myElection.candidate_3) {
-      myElection.candidates.push(myElection.candidate_3);
-    }
-    if (myElection.candidate_4) {
-      myElection.candidates.push(myElection.candidate_4);
-    }
-    if (myElection.candidate_5) {
-      myElection.candidates.push(myElection.candidate_5);
-    }
 
     res.status(200).send({
       ok: true,
@@ -100,20 +135,12 @@ router.get("/", authMiddleware, async (req, res, next) => {
     }
     const elections = await election.findAll({
       where: { univ_id },
-      raw: true,
+      include: [
+        { model: university, attributes: ["name"] },
+        { model: country, attributes: ["name"] },
+        { model: candidate },
+      ],
     });
-    for (myElection of elections) {
-      myElection.candidates = [myElection.candidate_1, myElection.candidate_2];
-      if (myElection.candidate_3) {
-        myElection.candidates.push(myElection.candidate_3);
-      }
-      if (myElection.candidate_4) {
-        myElection.candidates.push(myElection.candidate_4);
-      }
-      if (myElection.candidate_5) {
-        myElection.candidates.push(myElection.candidate_5);
-      }
-    }
     res.status(200).send({
       ok: true,
       result: elections,
@@ -136,6 +163,7 @@ router.get("/:election_id", authMiddleware, async (req, res, next) => {
       include: [
         { model: university, attributes: ["name"] },
         { model: country, attributes: ["name"] },
+        { model: candidate },
       ],
       raw: true,
     });
@@ -160,16 +188,6 @@ router.get("/:election_id", authMiddleware, async (req, res, next) => {
         message: "내가 재학중인 대학교가 아닙니다.",
       });
       return;
-    }
-    myElection.candidates = [myElection.candidate_1, myElection.candidate_2];
-    if (myElection.candidate_3) {
-      myElection.candidates.push(myElection.candidate_3);
-    }
-    if (myElection.candidate_4) {
-      myElection.candidates.push(myElection.candidate_4);
-    }
-    if (myElection.candidate_5) {
-      myElection.candidates.push(myElection.candidate_5);
     }
     res.status(200).send({
       ok: true,
@@ -278,6 +296,9 @@ router.delete("/:election_id", authMiddleware, async (req, res) => {
       });
       return;
     }
+    await candidate.destroy({
+      where: { election_id },
+    });
     await vote.destroy({
       where: { election_id },
     });
