@@ -88,6 +88,45 @@ router.post("/", authMiddleware, async (req, res) => {
   }
 });
 
+router.get("/", authMiddleware, async (req, res, next) => {
+  const { univ_id } = res.locals.user;
+  try {
+    if (univ_id == null) {
+      res.status(403).send({
+        ok: false,
+        message: "내가 재학중인 대학교가 없습니다.",
+      });
+      return;
+    }
+    const elections = await election.findAll({
+      where: { univ_id },
+      raw: true,
+    });
+    for (myElection of elections) {
+      myElection.candidates = [myElection.candidate_1, myElection.candidate_2];
+      if (myElection.candidate_3) {
+        myElection.candidates.push(myElection.candidate_3);
+      }
+      if (myElection.candidate_4) {
+        myElection.candidates.push(myElection.candidate_4);
+      }
+      if (myElection.candidate_5) {
+        myElection.candidates.push(myElection.candidate_5);
+      }
+    }
+    res.status(200).send({
+      ok: true,
+      result: elections,
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(400).send({
+      ok: false,
+      message: `${err}`,
+    });
+  }
+});
+
 router.get("/:election_id", authMiddleware, async (req, res, next) => {
   const { univ_id } = res.locals.user;
   const { election_id } = req.params;
