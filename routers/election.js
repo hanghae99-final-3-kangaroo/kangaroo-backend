@@ -3,128 +3,98 @@ const { election, university, country, vote, candidate } = require("../models");
 const router = express.Router(); // 라우터라고 선언한다.
 const Sequelize = require("sequelize");
 const authMiddleware = require("../middlewares/auth-middleware");
-const multer = require("multer");
-const randomstring = require("randomstring");
+const imgUploader = require("../middlewares/imgUploader");
 const fs = require("fs");
 
-const imageUpload = multer({
-  storage: multer.diskStorage({
-    destination: (req, file, cb) => {
-      cb(null, `${__dirname}/../public`); //저장할 폴더
-    },
-    filename: (req, file, cb) => {
-      var fileName = randomstring.generate(25); // 파일 이름 - 랜덤
-      var mimeType;
-      switch (
-        file.mimetype // 파일 타입
-      ) {
-        case "image/jpeg":
-          mimeType = "jpg";
-          break;
-        case "image/png":
-          mimeType = "png";
-          break;
-        case "image/gif":
-          mimeType = "gif";
-          break;
-        case "image/bmp":
-          mimeType = "bmp";
-          break;
-        default:
-          mimeType = "jpg";
-          break;
+router.post(
+  "/",
+  authMiddleware,
+  imageUploader.array("img"),
+  async (req, res) => {
+    const { user_id } = res.locals.user;
+    const { name, content, univ_id, candidates, end_date, start_date } =
+      req.body;
+    try {
+      const { admin_id: univAdmin, country_id } = await university.findOne({
+        where: { univ_id },
+        attributes: ["admin_id", "country_id"],
+      });
+
+      if (candidates.length == 0) {
+        res.status(403).send({
+          ok: false,
+          message: "입후보자가 없습니다.",
+        });
       }
-      cb(null, fileName + "." + mimeType); // 파일 이름 + 파일 타입 형태로 이름 설정
-    },
-  }),
-  limits: {
-    fileSize: 5 * 1024 * 1024, // 크기제한 : 5byte
-  },
-});
 
-router.post("/", authMiddleware, imageUpload.array("img"), async (req, res) => {
-  const { user_id } = res.locals.user;
-  const { name, content, univ_id, candidates, end_date, start_date } = req.body;
-  try {
-    const { admin_id: univAdmin, country_id } = await university.findOne({
-      where: { univ_id },
-      attributes: ["admin_id", "country_id"],
-    });
-
-    if (candidates.length == 0) {
-      res.status(403).send({
-        ok: false,
-        message: "입후보자가 없습니다.",
-      });
-    }
-
-    if (new Date(start_date) > new Date(end_date)) {
-      res.status(403).send({
-        ok: false,
-        message: "시작 시간 설정 종료 시간보다 뒤입니다.",
-      });
-      return;
-    }
-    if (new Date(end_date) < new Date()) {
-      res.status(403).send({
-        ok: false,
-        message: "종료 시간 설정이 잘못 되었습니다.",
-      });
-      return;
-    }
-
-    if (univAdmin == null) {
-      res.status(403).send({
-        ok: false,
-        message: "대학 관리자가 설정되지 않았습니다.",
-      });
-      return;
-    } else if (univAdmin != user_id) {
-      res.status(401).send({
-        ok: false,
-        message: "대학 관리자가 아닙니다.",
-      });
-      return;
-    }
-
-    const createdElection = await election.create({
-      name,
-      content,
-      country_id,
-      univ_id,
-      start_date,
-      end_date,
-    });
-    let i = 0;
-    candidates.forEach(function (c) {
-      c.election_id = createdElection.election_id;
-      if (req.files.length) {
-        c.photo = req.files[i].filename;
+      if (new Date(start_date) > new Date(end_date)) {
+        res.status(403).send({
+          ok: false,
+          message: "시작 시간 설정 종료 시간보다 뒤입니다.",
+        });
+        return;
       }
-      i += 1;
-    });
-    await candidate.bulkCreate(candidates);
-    const myElection = await election.findOne({
-      where: { election_id: createdElection.election_id },
-      include: [
-        { model: university, attributes: ["name"] },
-        { model: country, attributes: ["name"] },
-        { model: candidate },
-      ],
-    });
+      if (new Date(end_date) < new Date()) {
+        res.status(403).send({
+          ok: false,
+          message: "종료 시간 설정이 잘못 되었습니다.",
+        });
+        return;
+      }
 
-    res.status(200).send({
-      ok: true,
-      result: myElection,
-    });
-  } catch (err) {
-    console.error(err);
-    res.status(400).send({
-      ok: false,
-      message: `${err}`,
-    });
+      if (univAdmin == null) {
+        res.status(403).send({
+          ok: false,
+          message: "대학 관리자가 설정되지 않았습니다.",
+        });
+        return;
+      } else if (univAdmin != user_id) {
+        res.status(401).send({
+          ok: false,
+          message: "대학 관리자가 아닙니다.",
+        });
+        return;
+      }
+
+      const createdElection = await election.create({
+        name,
+        content,
+        country_id,
+        univ_id,
+        start_date,
+        end_date,
+      });
+      let i = 0;
+      candidates.forEach(function (c) {
+        c.election_id = createdElection.election_id;
+        if (req.files.length) {
+          c.photo = req.files[i].filename;
+        }
+        i += 1;
+      });
+      await candidate.bulkCreate(candidates);
+      const myElection = await election.findOne({
+        where: { election_id: createdElection.election_id },
+        include: [
+          { model: university, attributes: ["name"] },
+          { model: country, attributes: ["name"] },
+          { model: candidate },
+        ],
+      });
+
+      res.status(200).send({
+        ok: true,
+        result: myElection,
+      });
+    } catch (err) {
+      console.error(err);
+      res.status(400).send({
+        ok: false,
+        message: `${err}`,
+      });
+    }
   }
-});
+);
 
 router.get("/", authMiddleware, async (req, res, next) => {
   const { univ_id } = res.locals.user;
