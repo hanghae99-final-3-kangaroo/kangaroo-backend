@@ -5,6 +5,7 @@ const { free_board, free_comment, free_like, issue } = require("../models");
 const { Sequelize } = require("sequelize");
 
 const schedule = require("node-schedule");
+const { get } = require("https");
 
 const Op = Sequelize.Op;
 
@@ -23,13 +24,13 @@ schedule.scheduleJob("31 * * * * *", async function () {
 
   // 현재 시각 기준, 24시간 전까지의 게시글 조회
   const get_free_post = await free_board.findAll({
-    where: {
-      createdAt: {
-        [Op.gt]: TODAY_START,
-        [Op.lt]: NOW,
-        [Op.gt]: new Date(Date.now() - 60 * 60 * 1000),
-      },
-    },
+    // where: {
+    // createdAt: {
+    // [Op.gt]: TODAY_START,
+    // [Op.lt]: NOW,
+    // [Op.gt]: new Date(Date.now() - 60 * 60 * 1000),
+    // },
+    // },
     include: [
       {
         model: free_comment,

@@ -28,7 +28,11 @@ app.use("/swagger", swaggerUi.serve, swaggerUi.setup(swaggerFile));
 sequelize
   .sync({ force: false })
   .then(() => {
-    console.log("데이터베이스페이스오페라면");
+    console.log(`
+    ♥ ♥ ♥ ♥ ♥ ♥ ♥
+    ♥ 안녕 디비 ♥
+    ♥ ♥ ♥ ♥ ♥ ♥ ♥
+    `);
   })
   .catch((error) => {
     console.error(error);
@@ -48,6 +52,7 @@ const electionRouter = require("./routers/election");
 const authRouter = require("./routers/auth");
 const messageRouter = require("./routers/message");
 const utilRouter = require("./routers/util");
+const issueRouter = require("./routers/issue");
 const sampleRouter = require("./routers/sample");
 
 app.use("/api", [userRouter]);
@@ -57,6 +62,7 @@ app.use("/univ", [univBoardRouter]);
 app.use("/election", [electionRouter]);
 app.use("/message", [messageRouter]);
 app.use("/util", [utilRouter]);
+app.use("/issue", [issueRouter]);
 app.use("/test", [sampleRouter]);
 
 app.get("/", (req, res) => {
