@@ -5,17 +5,16 @@ const { free_board, free_comment, free_like, issue } = require("../models");
 const { Sequelize } = require("sequelize");
 
 const schedule = require("node-schedule");
-const { get } = require("https");
 
 const Op = Sequelize.Op;
 
 let issue_post_result;
 
-schedule.scheduleJob("31 * * * * *", async function () {
+schedule.scheduleJob("31 8 * * * *", async function () {
   let mNow = new Date();
 
   console.log(mNow);
-  console.log("31초 마다 실행");
+  console.log("8분 31초 마다 실행");
 
   // 저번 회차 이슈 게시글 삭제
   await issue.destroy({
@@ -24,13 +23,11 @@ schedule.scheduleJob("31 * * * * *", async function () {
 
   // 현재 시각 기준, 24시간 전까지의 게시글 조회
   const get_free_post = await free_board.findAll({
-    // where: {
-    // createdAt: {
-    // [Op.gt]: TODAY_START,
-    // [Op.lt]: NOW,
-    // [Op.gt]: new Date(Date.now() - 60 * 60 * 1000),
-    // },
-    // },
+    where: {
+      createdAt: {
+        [Op.gt]: new Date(Date.now() - 60 * 60 * 1000),
+      },
+    },
     include: [
       {
         model: free_comment,
