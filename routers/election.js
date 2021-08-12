@@ -6,95 +6,82 @@ const authMiddleware = require("../middlewares/auth-middleware");
 const imgUploader = require("../middlewares/imgUploader");
 const fs = require("fs");
 
-router.post(
-  "/",
-  authMiddleware,
-  imageUploader.array("img"),
-  async (req, res) => {
-    const { user_id } = res.locals.user;
-    const { name, content, univ_id, candidates, end_date, start_date } =
-      req.body;
-    try {
-      const { admin_id: univAdmin, country_id } = await university.findOne({
-        where: { univ_id },
-        attributes: ["admin_id", "country_id"],
-      });
+router.post("/", authMiddleware, async (req, res) => {
+  const { user_id } = res.locals.user;
+  const { name, content, univ_id, candidates, end_date, start_date } = req.body;
+  try {
+    const { admin_id: univAdmin, country_id } = await university.findOne({
+      where: { univ_id },
+      attributes: ["admin_id", "country_id"],
+    });
 
-      if (candidates.length == 0) {
-        res.status(403).send({
-          ok: false,
-          message: "입후보자가 없습니다.",
-        });
-      }
-
-      if (new Date(start_date) > new Date(end_date)) {
-        res.status(403).send({
-          ok: false,
-          message: "시작 시간 설정 종료 시간보다 뒤입니다.",
-        });
-        return;
-      }
-      if (new Date(end_date) < new Date()) {
-        res.status(403).send({
-          ok: false,
-          message: "종료 시간 설정이 잘못 되었습니다.",
-        });
-        return;
-      }
-
-      if (univAdmin == null) {
-        res.status(403).send({
-          ok: false,
-          message: "대학 관리자가 설정되지 않았습니다.",
-        });
-        return;
-      } else if (univAdmin != user_id) {
-        res.status(401).send({
-          ok: false,
-          message: "대학 관리자가 아닙니다.",
-        });
-        return;
-      }
-
-      const createdElection = await election.create({
-        name,
-        content,
-        country_id,
-        univ_id,
-        start_date,
-        end_date,
-      });
-      let i = 0;
-      candidates.forEach(function (c) {
-        c.election_id = createdElection.election_id;
-        if (req.files.length) {
-          c.photo = req.files[i].filename;
-        }
-        i += 1;
-      });
-      await candidate.bulkCreate(candidates);
-      const myElection = await election.findOne({
-        where: { election_id: createdElection.election_id },
-        include: [
-          { model: university, attributes: ["name"] },
-          { model: country, attributes: ["name"] },
-          { model: candidate },
-        ],
-      });
-
-      res.status(200).send({
-        ok: true,
-        result: myElection,
-      });
-    } catch (err) {
-      console.error(err);
-      res.status(400).send({
+    if (candidates.length == 0) {
+      res.status(403).send({
         ok: false,
-        message: `${err}`,
+        message: "입후보자가 없습니다.",
       });
     }
+
+    if (new Date(start_date) > new Date(end_date)) {
+      res.status(403).send({
+        ok: false,
+        message: "시작 시간 설정 종료 시간보다 뒤입니다.",
+      });
+      return;
+    }
+    if (new Date(end_date) < new Date()) {
+      res.status(403).send({
+        ok: false,
+        message: "종료 시간 설정이 잘못 되었습니다.",
+      });
+      return;
+    }
+
+    if (univAdmin == null) {
+      res.status(403).send({
+        ok: false,
+        message: "대학 관리자가 설정되지 않았습니다.",
+      });
+      return;
+    } else if (univAdmin != user_id) {
+      res.status(401).send({
+        ok: false,
+        message: "대학 관리자가 아닙니다.",
+      });
+      return;
+    }
+
+    const createdElection = await election.create({
+      name,
+      content,
+      country_id,
+      univ_id,
+      start_date,
+      end_date,
+    });
+
+    await candidate.bulkCreate(candidates);
+    const myElection = await election.findOne({
+      where: { election_id: createdElection.election_id },
+      include: [
+        { model: university, attributes: ["name"] },
+        { model: country, attributes: ["name"] },
+        { model: candidate },
+      ],
+    });
+
+    res.status(200).send({
+      ok: true,
+      result: myElection,
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(400).send({
+      ok: false,
+      message: `${err}`,
+    });
   }
-);
+});
 
 router.get("/", authMiddleware, async (req, res, next) => {
   const { univ_id } = res.locals.user;
