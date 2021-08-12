@@ -433,10 +433,10 @@ router.get("/post/:post_id/like", authMiddleware, async (req, res, next) => {
 // Comment Part
 
 // free_comment 작성
-router.post("/comment", async (req, res, next) => {
+router.post("/comment", authMiddleware, async (req, res, next) => {
   try {
     const { user } = res.locals;
-    const user_id = 2;
+    const user_id = user.user_id;
 
     const { post_id, content } = req.body;
 
