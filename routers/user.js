@@ -6,13 +6,16 @@ const {
   vote,
   free_board,
   free_comment,
+  free_like,
   univ_board,
   univ_comment,
+  univ_like,
 } = require("../models");
 const router = express.Router(); // 라우터라고 선언한다.
 const authMiddleware = require("../middlewares/auth-middleware");
 const bcrypt = require("bcrypt");
 const Joi = require("joi");
+const { Sequelize } = require("sequelize");
 
 const postUserModel = Joi.object({
   email: Joi.string().email().required(),
@@ -79,6 +82,196 @@ router.post("/user", async (req, res) => {
   }
 });
 
+router.get("/user/my-post", authMiddleware, async (req, res, next) => {
+  const { user_id } = res.locals.user;
+  const { pageSize, pageNum } = req.query;
+  if (!pageSize || !pageNum) {
+    res.status(403).send({
+      message: "pageSize, pageNum을 입력하세요.",
+      ok: false,
+    });
+    return;
+  }
+  let offset = 0;
+  if (pageNum > 1) {
+    offset = pageSize * (pageNum - 1);
+  }
+  try {
+    const options = {
+      subQuery: false,
+      raw: true,
+      limit: Number(pageSize),
+      order: [["createdAt", "DESC"]],
+      offset: offset,
+      where: {},
+      attributes: {
+        include: [
+          [Sequelize.fn("COUNT", Sequelize.col("comment_id")), "coment_count"],
+        ],
+      },
+      include: [
+        {
+          model: free_comment,
+          attributes: [],
+        },
+      ],
+      group: ["post_id"],
+    };
+    options.where.user_id = user_id;
+
+    const my_free_post = await free_board.findAll(options);
+    options.include[0].model = univ_comment;
+    const my_univ_post = await univ_board.findAll(options);
+
+    for (let i = 0; i < my_free_post.length; i++) {
+      let is_like = false;
+      my_like = await free_like.findOne({
+        where: {
+          user_id,
+          post_id: my_free_post[i].post_id,
+        },
+      });
+      if (my_like) {
+        is_like = true;
+      }
+
+      all_like = await free_like.findAll({
+        where: { post_id: my_free_post[i].post_id },
+      });
+      my_free_post[i].like = {
+        is_like,
+        all_like: all_like.length,
+      };
+    }
+
+    for (let i = 0; i < my_univ_post.length; i++) {
+      let is_like = false;
+      my_like = await univ_like.findOne({
+        where: {
+          user_id,
+          post_id: my_free_post[i].post_id,
+        },
+      });
+      if (my_like) {
+        is_like = true;
+      }
+      all_like = await univ_like.findAll({
+        where: { post_id: my_univ_post[i].post_id },
+      });
+      my_univ_post[i].like = {
+        is_like,
+        all_like: all_like.length,
+      };
+    }
+    res.status(200).send({
+      ok: true,
+      my_free_post,
+      my_univ_post,
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(400).send({
+      ok: false,
+      message: `${err} : 유저 정보 조회 실패`,
+    });
+  }
+});
+
+router.get("/user/my-comment", authMiddleware, async (req, res, next) => {
+  const { user_id } = res.locals.user;
+  const { pageSize, pageNum } = req.query;
+  if (!pageSize || !pageNum) {
+    res.status(403).send({
+      message: "pageSize, pageNum을 입력하세요.",
+      ok: false,
+    });
+    return;
+  }
+  let offset = 0;
+  if (pageNum > 1) {
+    offset = pageSize * (pageNum - 1);
+  }
+  try {
+    const options = {
+      subQuery: false,
+      raw: true,
+      limit: Number(pageSize),
+      order: [["createdAt", "DESC"]],
+      offset: offset,
+      where: {},
+      attributes: {
+        include: [
+          [Sequelize.fn("COUNT", Sequelize.col("comment_id")), "coment_count"],
+        ],
+      },
+      include: [
+        {
+          model: free_comment,
+          attributes: [],
+          where: { user_id },
+        },
+      ],
+      group: ["post_id"],
+    };
+
+    const my_free_comment = await free_board.findAll(options);
+    options.include[0].model = univ_comment;
+    const my_univ_comment = await univ_board.findAll(options);
+
+    for (let i = 0; i < my_free_comment.length; i++) {
+      let is_like = false;
+      my_like = await free_like.findOne({
+        where: {
+          user_id,
+          post_id: my_free_comment[i].post_id,
+        },
+      });
+      if (my_like) {
+        is_like = true;
+      }
+
+      all_like = await free_like.findAll({
+        where: { post_id: my_free_comment[i].post_id },
+      });
+      my_free_comment[i].like = {
+        is_like,
+        all_like: all_like.length,
+      };
+    }
+
+    for (let i = 0; i < my_univ_comment.length; i++) {
+      let is_like = false;
+      my_like = await univ_like.findOne({
+        where: {
+          user_id,
+          post_id: my_univ_comment[i].post_id,
+        },
+      });
+      if (my_like) {
+        is_like = true;
+      }
+      all_like = await univ_like.findAll({
+        where: { post_id: my_univ_comment[i].post_id },
+      });
+      my_univ_comment[i].like = {
+        is_like,
+        all_like: all_like.length,
+      };
+    }
+    res.status(200).send({
+      ok: true,
+      my_free_comment,
+      my_univ_comment,
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(400).send({
+      ok: false,
+      message: `${err} : 유저 정보 조회 실패`,
+    });
+  }
+});
+
 router.get("/user/:user_id", authMiddleware, async (req, res, next) => {
   const { user_id } = req.params;
   try {
@@ -108,7 +301,6 @@ router.get("/user/:user_id", authMiddleware, async (req, res, next) => {
     });
   }
 });
-
 router.put("/user/:user_id", authMiddleware, async (req, res) => {
   const { user_id } = req.params;
   const { email, password, nickname } = req.body;
