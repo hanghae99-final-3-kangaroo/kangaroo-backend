@@ -22,7 +22,9 @@ module.exports = (req, res, next) => {
 
   try {
     const myToken = verifyToken(tokenValue);
+    console.log(myToken);
     if (myToken == "jwt expired") {
+      console.log("access token 만료");
       // access token 만료
       const userInfo = jwt.decode(tokenValue, process.env.JWT_SECRET);
       console.log(userInfo);
@@ -32,7 +34,7 @@ module.exports = (req, res, next) => {
         refresh_token = u.refresh_token;
         const myRefreshToken = verifyToken(refresh_token);
         if (myRefreshToken == "jwt expired") {
-          res.send({ errorMessage: "로그인이 필요합니다." });
+          res.status(401).send({ errorMessage: "로그인이 필요합니다." });
         } else {
           const myNewToken = jwt.sign(
             { user_id: u.user_id },
@@ -52,7 +54,7 @@ module.exports = (req, res, next) => {
       });
     }
   } catch (err) {
-    res.send({ errorMessage: err + " : 로그인이 필요합니다." });
+    res.status(401).send({ errorMessage: err + " : 로그인이 필요합니다." });
   }
 };
 
@@ -63,3 +65,4 @@ function verifyToken(token) {
     return error.message;
   }
 }
+
