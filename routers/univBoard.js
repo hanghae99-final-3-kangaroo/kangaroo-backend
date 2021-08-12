@@ -397,7 +397,7 @@ router.delete("/post/:post_id", authMiddleware, async (req, res, next) => {
 // univ_board 글 좋아요
 router.get("/post/:post_id/like", authMiddleware, async (req, res, next) => {
   try {
-    const { user_id } = res.locals;
+    const { user_id } = res.locals.user;
     const { post_id } = req.params;
     const my_like = await univ_like.findOne({
       where: { post_id, user_id },
