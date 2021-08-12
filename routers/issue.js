@@ -10,11 +10,9 @@ const Op = Sequelize.Op;
 
 let issue_post_result;
 
-schedule.scheduleJob("31 * * * * *", async function () {
-  let mNow = new Date();
-
-  console.log(mNow);
-  console.log("31초 마다 실행");
+schedule.scheduleJob("31 8 * * * *", async function () {
+  console.log(new Date());
+  console.log("매 시간 8분 31초마다 실행");
 
   // 저번 회차 이슈 게시글 삭제
   await issue.destroy({
@@ -25,7 +23,7 @@ schedule.scheduleJob("31 * * * * *", async function () {
   const get_free_post = await free_board.findAll({
     where: {
       createdAt: {
-        [Op.gt]: new Date(Date.now() - 60 * 60 * 1000),
+        [Op.gt]: new Date(Date.now() - 60 * 60 * 24 * 1000),
       },
     },
     include: [
