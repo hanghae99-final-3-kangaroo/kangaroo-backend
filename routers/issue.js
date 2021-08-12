@@ -10,11 +10,11 @@ const Op = Sequelize.Op;
 
 let issue_post_result;
 
-schedule.scheduleJob("31 8 * * * *", async function () {
+schedule.scheduleJob("31 * * * * *", async function () {
   let mNow = new Date();
 
   console.log(mNow);
-  console.log("8분 31초 마다 실행");
+  console.log("31초 마다 실행");
 
   // 저번 회차 이슈 게시글 삭제
   await issue.destroy({
