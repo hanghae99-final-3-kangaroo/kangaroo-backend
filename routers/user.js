@@ -301,9 +301,12 @@ router.get("/user/:user_id", authMiddleware, async (req, res, next) => {
     });
   }
 });
+
 router.put("/user/:user_id", authMiddleware, async (req, res) => {
   const { user_id } = req.params;
-  const { email, password, nickname } = req.body;
+
+  const { email, password, nickname, new_password } = req.body;
+
   try {
     if (res.locals.user.user_id != user_id) {
       res.status(401).send({
@@ -313,51 +316,77 @@ router.put("/user/:user_id", authMiddleware, async (req, res) => {
       return;
     }
 
-    if (!password) {
-      res.status(403).send({
-        ok: false,
-        message: "패스워드 미입력",
-      });
-      return;
-    }
-
-    const dupEmail = await user.findOne({
-      where: { email },
+    const user_check = await user.findOne({
+      where: { user_id },
     });
 
-    if (dupEmail) {
-      res.status(403).send({
-        ok: false,
-        message: "이메일 중복",
-      });
-      return;
-    }
+    if (password != undefined) {
+      const authenticate = await bcrypt.compare(password, user_check.password);
 
-    const dupNickname = await user.findOne({
-      where: { nickname },
-    });
-
-    if (dupNickname) {
-      res.status(403).send({
-        ok: false,
-        message: "닉네임 중복",
-      });
-      return;
-    }
-
-    const salt = await bcrypt.genSalt();
-    const hashedPassword = await bcrypt.hash(password, salt);
-
-    await user.update(
-      {
-        email,
-        password: hashedPassword,
-        nickname,
-      },
-      {
-        where: { user_id },
+      if (!authenticate) {
+        res.status(401).send({
+          ok: false,
+          message: "비밀번호가 틀렸습니다.",
+        });
+        return;
       }
-    );
+
+      if (!password) {
+        res.status(403).send({
+          ok: false,
+          message: "패스워드 미입력",
+        });
+        return;
+      }
+    }
+
+    if (email != undefined) {
+      const dupEmail = await user.findOne({
+        where: { email },
+      });
+      if (dupEmail) {
+        res.status(403).send({
+          ok: false,
+          message: "이메일 중복",
+        });
+        return;
+      }
+    }
+
+    if (nickname != undefined) {
+      const dupNickname = await user.findOne({
+        where: { nickname },
+      });
+
+      if (dupNickname) {
+        res.status(403).send({
+          ok: false,
+          message: "닉네임 중복",
+        });
+        return;
+      }
+    }
+
+    if (!email && !nickname && !new_password) {
+      res.status(403).send({
+        ok: false,
+        message: "수정할 정보 입력이 없습니다.",
+      });
+      return;
+    }
+
+    let user_info_update = {};
+
+    if (email) user_info_update.email = email;
+    if (nickname) user_info_update.nickname = nickname;
+    if (new_password) {
+      const salt = await bcrypt.genSalt();
+      const hashedPassword = await bcrypt.hash(new_password, salt);
+      user_info_update.password = hashedPassword;
+    }
+
+    await user_check.update(user_info_update);
+
     res.status(200).send({
       ok: true,
     });
