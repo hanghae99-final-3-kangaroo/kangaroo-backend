@@ -50,7 +50,9 @@ router.post("/", authMiddleware, async (req, res) => {
       });
       return;
     }
-
+    candidates.forEach(function (c) {
+      c.election_id = createdElection.election_id;
+    });
     const createdElection = await election.create({
       name,
       content,
