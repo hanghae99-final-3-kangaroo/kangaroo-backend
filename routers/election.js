@@ -50,9 +50,6 @@ router.post("/", authMiddleware, async (req, res) => {
       });
       return;
     }
-    candidates.forEach(function (c) {
-      c.election_id = createdElection.election_id;
-    });
     const createdElection = await election.create({
       name,
       content,
@@ -62,6 +59,9 @@ router.post("/", authMiddleware, async (req, res) => {
       end_date,
     });
 
+    candidates.forEach(function (c) {
+      c.election_id = createdElection.election_id;
+    });
     await candidate.bulkCreate(candidates);
     const myElection = await election.findOne({
       where: { election_id: createdElection.election_id },
@@ -127,7 +127,6 @@ router.get("/:election_id", authMiddleware, async (req, res, next) => {
         { model: country, attributes: ["name"] },
         { model: candidate },
       ],
-      raw: true,
     });
 
     if (myElection == null) {
