@@ -13,7 +13,10 @@ router.post("/post", authMiddleware, async (req, res, next) => {
   try {
     const { user_id } = res.locals.user;
 
-    const { univ_id, title, category, content, is_fixed, img_list } = req.body;
+    const { univ_id, title, category, content, is_fixed } = req.body;
+    let { img_list } = req.body;
+
+    if (img_list == undefined) img_list = [];
 
     const target = await univ_board.create({
       user_id,

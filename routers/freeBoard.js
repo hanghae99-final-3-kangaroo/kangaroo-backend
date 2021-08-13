@@ -14,7 +14,10 @@ router.post("/post", authMiddleware, async (req, res, next) => {
     const { user } = res.locals;
     const user_id = user.user_id;
 
-    const { title, category, content, country_id, img_list } = req.body;
+    const { title, category, content, country_id } = req.body;
+    let { img_list } = req.body;
+
+    if (img_list == undefined) img_list = [];
 
     const target = await free_board.create({
       user_id,
