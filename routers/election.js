@@ -23,6 +23,7 @@ router.post("/", authMiddleware, async (req, res) => {
         ok: false,
         message: "입후보자가 없습니다.",
       });
+      return;
     }
 
     if (new Date(start_date) > new Date(end_date)) {
