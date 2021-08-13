@@ -58,6 +58,14 @@ router.get("/post", authMiddleware, async (req, res, next) => {
       return;
     }
 
+    if (!univ_id) {
+      res.status(403).send({
+        message: "인증받은 대학이 없습니다.",
+        ok: false,
+      });
+      return;
+    }
+
     let offset = 0;
     if (pageNum > 1) {
       offset = pageSize * (pageNum - 1);
