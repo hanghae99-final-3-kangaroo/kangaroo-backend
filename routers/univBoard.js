@@ -2,6 +2,7 @@ const express = require("express");
 
 const { univ_board, univ_comment, user, univ_like } = require("../models");
 const authMiddleware = require("../middlewares/auth-middleware");
+const likeMiddleware = require("../middlewares/like-middleware");
 const { Sequelize } = require("sequelize");
 const router = express.Router(); // 라우터라고 선언한다.
 const { or, like } = Sequelize.Op;
@@ -152,7 +153,7 @@ router.get("/post", authMiddleware, async (req, res, next) => {
   }
 });
 
-router.get("/search", async (req, res, next) => {
+router.get("/search", likeMiddleware, async (req, res, next) => {
   try {
     const { univ_id, user_id } = res.locals.user;
     const { pageSize, pageNum, category, sort } = req.query;
