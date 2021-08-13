@@ -166,7 +166,15 @@ router.get("/:election_id", authMiddleware, async (req, res, next) => {
 router.put("/:election_id", authMiddleware, async (req, res) => {
   const { user_id } = res.locals.user;
   const { election_id } = req.params;
-  const { name, content, country_id, univ_id, end_date } = req.body;
+  const {
+    name,
+    content,
+    country_id,
+    univ_id,
+    candidates,
+    start_date,
+    end_date,
+  } = req.body;
   try {
     const electionCheck = await election.findOne({
       where: { election_id },
@@ -258,7 +266,7 @@ router.delete("/:election_id", authMiddleware, async (req, res) => {
     }
     const myCandidates = await candidate.findAll({ where: { election_id } });
     for (myCandidate of myCandidates) {
-      fs.unlink("/public" + myCandidate.photo);
+      fs.unlinkSync("/public/" + myCandidate.photo);
       myCandidate.destroy();
     }
     await vote.destroy({
