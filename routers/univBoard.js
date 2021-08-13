@@ -22,7 +22,7 @@ router.post("/post", authMiddleware, async (req, res, next) => {
       category,
       content,
       is_fixed,
-      // img_list: img_list.toString(),
+      img_list: img_list.toString(),
     });
 
     const target_post_id = target.post_id;
@@ -30,7 +30,7 @@ router.post("/post", authMiddleware, async (req, res, next) => {
       where: { post_id: target_post_id },
     });
 
-    // result.img_list = img_list;
+    result.img_list = img_list;
 
     res.status(200).send({
       result,
@@ -107,16 +107,16 @@ router.get("/post", authMiddleware, async (req, res, next) => {
       };
     }
 
-    // let img_list;
-    // for (i = 0; i < result.length; i++) {
-    //   img_list = result[i]["img_list"];
-    //   if (img_list != null) {
-    //     img_list = img_list.split(",");
-    //   } else {
-    //     img_list = [];
-    //   }
-    //   result[i].img_list = img_list;
-    // }
+    let img_list;
+    for (i = 0; i < result.length; i++) {
+      img_list = result[i]["img_list"];
+      if (img_list != null) {
+        img_list = img_list.split(",");
+      } else {
+        img_list = [];
+      }
+      result[i].img_list = img_list;
+    }
 
     const page_count = await univ_board.findAll({
       attributes: {
@@ -287,11 +287,11 @@ router.get("/post/:post_id", authMiddleware, async (req, res, next) => {
 
       all_like = await univ_like.findAll({ where: { post_id } });
 
-      // if (result.img_list != null) {
-      //   result.img_list = img_list = result["img_list"].split(",");
-      // } else {
-      //   result.img_list = [];
-      // }
+      if (result.img_list != null) {
+        result.img_list = img_list = result["img_list"].split(",");
+      } else {
+        result.img_list = [];
+      }
 
       res.status(200).send({
         like: {
@@ -335,14 +335,14 @@ router.put("/post/:post_id", authMiddleware, async (req, res, next) => {
         category,
         content,
         is_fixed,
-        // img_list: img_list.toString(),
+        img_list: img_list.toString(),
       },
       {
         where: { post_id },
       }
     );
 
-    // result.img_list = img_list;
+    result.img_list = img_list;
 
     res.status(200).send({
       result,
