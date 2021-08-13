@@ -89,7 +89,7 @@ router.post("/", authMiddleware, async (req, res) => {
 });
 
 router.get("/", authMiddleware, async (req, res, next) => {
-  const { univ_id } = res.locals.user;
+  const { univ_id, user_id } = res.locals.user;
   try {
     if (univ_id == null) {
       res.status(403).send({
@@ -104,6 +104,12 @@ router.get("/", authMiddleware, async (req, res, next) => {
         { model: university, attributes: ["name"] },
         { model: country, attributes: ["name"] },
         { model: candidate },
+        {
+          model: vote,
+          required: false,
+          where: { user_id },
+          attributes: ["vote_id"],
+        },
       ],
     });
     res.status(200).send({
@@ -275,7 +281,7 @@ router.delete("/:election_id", authMiddleware, async (req, res) => {
     }
     const myCandidates = await candidate.findAll({ where: { election_id } });
     for (myCandidate of myCandidates) {
-      fs.unlinkSync(appDir+"/public/" + myCandidate.photo);
+      fs.unlinkSync(appDir + "/public/" + myCandidate.photo);
       myCandidate.destroy();
     }
     await vote.destroy({
