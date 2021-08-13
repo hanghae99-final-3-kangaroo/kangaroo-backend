@@ -212,12 +212,18 @@ router.put("/:election_id", authMiddleware, async (req, res) => {
         content,
         country_id,
         univ_id,
+        start_date,
         end_date,
       },
       {
         where: { election_id },
       }
     );
+    for (c of candidates) {
+      await candidate.update(c, {
+        where: { candidate_id: c.candidate_id },
+      });
+    }
     res.status(200).send({
       ok: true,
     });
