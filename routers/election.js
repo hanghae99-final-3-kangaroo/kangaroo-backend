@@ -6,6 +6,9 @@ const authMiddleware = require("../middlewares/auth-middleware");
 const imgUploader = require("../middlewares/imgUploader");
 const fs = require("fs");
 
+const path = require("path");
+const appDir = path.dirname(require.main.filename);
+
 router.post("/", authMiddleware, async (req, res) => {
   const { user_id } = res.locals.user;
   const { name, content, univ_id, candidates, end_date, start_date } = req.body;
@@ -272,7 +275,7 @@ router.delete("/:election_id", authMiddleware, async (req, res) => {
     }
     const myCandidates = await candidate.findAll({ where: { election_id } });
     for (myCandidate of myCandidates) {
-      fs.unlinkSync("/public/" + myCandidate.photo);
+      fs.unlinkSync(appDir+"/public/" + myCandidate.photo);
       myCandidate.destroy();
     }
     await vote.destroy({
