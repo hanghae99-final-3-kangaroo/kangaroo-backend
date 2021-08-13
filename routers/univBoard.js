@@ -131,6 +131,7 @@ router.get("/post", authMiddleware, async (req, res, next) => {
     }
 
     const page_count = await univ_board.findAll({
+      where: { univ_id },
       attributes: {
         include: [
           [Sequelize.fn("COUNT", Sequelize.col("post_id")), "post_count"],
