@@ -22,7 +22,7 @@ router.post("/post", authMiddleware, async (req, res, next) => {
       category,
       content,
       country_id,
-      // img_list: img_list.toString(),
+      img_list: img_list.toString(),
     });
 
     const target_post_id = target.post_id;
@@ -30,7 +30,7 @@ router.post("/post", authMiddleware, async (req, res, next) => {
       where: { post_id: target_post_id },
     });
 
-    // result.img_list = img_list;
+    result.img_list = img_list;
 
     res.status(200).send({
       result,
@@ -57,6 +57,7 @@ router.get("/post", likeMiddleware, async (req, res, next) => {
       });
       return;
     }
+
     let offset = 0;
     if (pageNum > 1) {
       offset = pageSize * (pageNum - 1);
@@ -108,19 +109,29 @@ router.get("/post", likeMiddleware, async (req, res, next) => {
       };
     }
 
-    // let img_list;
-    // for (i = 0; i < result.length; i++) {
-    //   img_list = result[i]["img_list"];
-    //   if (img_list != null) {
-    //     img_list = img_list.split(",");
-    //   } else {
-    //     img_list = [];
-    //   }
-    //   result[i].img_list = img_list;
-    // }
+    let img_list;
+    for (i = 0; i < result.length; i++) {
+      img_list = result[i]["img_list"];
+      if (img_list != null) {
+        img_list = img_list.split(",");
+      } else {
+        img_list = [];
+      }
+      result[i].img_list = img_list;
+    }
+
+    const page_count = await free_board.findAll({
+      attributes: {
+        include: [
+          [Sequelize.fn("COUNT", Sequelize.col("post_id")), "post_count"],
+        ],
+      },
+      raw: true,
+    });
 
     res.status(200).send({
       result,
+      page_count: Math.ceil(page_count[0]["post_count"] / pageSize),
       ok: true,
     });
   } catch (err) {
@@ -327,14 +338,14 @@ router.put("/post/:post_id", authMiddleware, async (req, res, next) => {
         category,
         content,
         country_id,
-        // img_list: img_list.toString(),
+        img_list: img_list.toString(),
       },
       {
         where: { post_id },
       }
     );
 
-    // result.img_list = img_list;
+    result.img_list = img_list;
 
     res.status(200).send({
       result,
@@ -399,8 +410,7 @@ router.delete("/post/:post_id", authMiddleware, async (req, res, next) => {
 // free_board 글 좋아요
 router.get("/post/:post_id/like", authMiddleware, async (req, res, next) => {
   try {
-    const { user } = res.locals;
-    const user_id = user.user_id;
+    const { user_id } = res.locals.user;
     const { post_id } = req.params;
     const my_like = await free_like.findOne({
       where: { post_id, user_id },

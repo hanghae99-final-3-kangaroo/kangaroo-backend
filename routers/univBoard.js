@@ -57,8 +57,8 @@ router.get("/post", authMiddleware, async (req, res, next) => {
       });
       return;
     }
-    let offset = 0;
 
+    let offset = 0;
     if (pageNum > 1) {
       offset = pageSize * (pageNum - 1);
     }
@@ -98,7 +98,6 @@ router.get("/post", authMiddleware, async (req, res, next) => {
       if (my_like) {
         is_like = true;
       }
-
       all_like = await univ_like.findAll({
         where: { post_id: result[i].post_id },
       });
@@ -107,6 +106,7 @@ router.get("/post", authMiddleware, async (req, res, next) => {
         all_like: all_like.length,
       };
     }
+
     // let img_list;
     // for (i = 0; i < result.length; i++) {
     //   img_list = result[i]["img_list"];
@@ -118,8 +118,18 @@ router.get("/post", authMiddleware, async (req, res, next) => {
     //   result[i].img_list = img_list;
     // }
 
+    const page_count = await univ_board.findAll({
+      attributes: {
+        include: [
+          [Sequelize.fn("COUNT", Sequelize.col("post_id")), "post_count"],
+        ],
+      },
+      raw: true,
+    });
+
     res.status(200).send({
       result,
+      page_count: Math.ceil(page_count[0]["post_count"] / pageSize),
       ok: true,
     });
   } catch (err) {
