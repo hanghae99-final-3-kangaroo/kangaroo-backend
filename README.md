@@ -53,12 +53,16 @@ https://yzkim9501.notion.site/UFO-3-b9bf655f15444276bdc50eda67336904
 
 |  라이브러리  |       Appliance       |
 | :----------: | :-------------------: |
+| jenkins |        CI/CD         |
 | jsonwebtoken |        암호화         |
 |   sequelize   | DB ORM |
 |     joi      |   Validation Check    |
 |     cors     | Request Resource 제한 |
 |     swagger     | API 문서화 |
 |     eslint     | 코드 자동 포맷팅 |
-|     jest     | 테스트 |
+|     mocha     | 테스트 |
 |     passport     | 로그인 및 소셜 로그인 |
 |     dotenv     | 환경변수 설정 |
+|     certbot     | https 적용 |
+|     RabbitMQ     | 메일링 서비스 비동기 메시지 큐 |
+|     node-schedule     | cron |
