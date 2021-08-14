@@ -78,3 +78,5 @@ if (env == "prd") {
   };
   https.createServer(options, app).listen(443);
 }
+
+module.exports = app;
