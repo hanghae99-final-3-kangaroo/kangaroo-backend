@@ -2,14 +2,9 @@ const express = require("express");
 const jwt = require("jsonwebtoken");
 const router = express.Router(); // 라우터라고 선언한다.
 const passport = require("passport");
-const ejs = require("ejs");
-const path = require("path");
-const appDir = path.dirname(require.main.filename);
-const nodemailer = require("nodemailer");
 const { university, user } = require("../models");
 const Sequelize = require("sequelize");
 const Op = Sequelize.Op;
-const consumer = require("../src/consumer");
 const Listener = require("../src/Listener");
 const MailSender = require("../src/MailSender");
 
