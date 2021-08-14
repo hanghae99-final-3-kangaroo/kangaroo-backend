@@ -12,6 +12,6 @@ ssh ubuntu@3.36.90.60 <<EOF
     rm package-lock.json
     rm -rf ./node-modules/
     npm --verbose install
-    pm2 restart ecosystem.config.js
+    pm2 restart app.js
     exit
 EOF
