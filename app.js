@@ -29,7 +29,7 @@ sequelize
   .sync({ force: false })
   .then(() => {
     console.log(`
-    ♥ ♥ ♥ ♥ ♥ ♥ ♥
+    🐣 ♥ ♥ ♥ ♥ ♥ ♥
     ♥ 안녕 디비 ♥
     ♥ ♥ ♥ ♥ ♥ ♥ ♥
     `);
