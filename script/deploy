@@ -2,7 +2,7 @@
 ssh ubuntu@3.36.90.60 <<EOF
     cd ~/kangaroo-backend
     sudo -s	
-    git pull
+    git pull origin main
     npm install
     pm2 restart app.js
     exit
