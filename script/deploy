@@ -8,10 +8,6 @@ ssh ubuntu@3.36.90.60 <<EOF
     nvm install 16.3.0	
     npm install
     npm install -g pm2
-    npm cache clean --force
-    rm package-lock.json
-    rm -rf ./node-modules/
-    npm --verbose install
     pm2 restart app.js
     exit
 EOF
