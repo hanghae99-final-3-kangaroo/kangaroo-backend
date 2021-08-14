@@ -4,6 +4,7 @@ ssh ubuntu@3.36.90.60 <<EOF
     git pull origin master
     curl -o-   https://raw.githubusercontent.com/creationix/nvm/v0.33.8/install.sh    | bash
     . ~/.nvm/nvm.sh 
+    sudo -s
     nvm install 16.3.0	
     npm install
     npm install -g pm2
