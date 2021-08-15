@@ -27,7 +27,6 @@ module.exports = (req, res, next) => {
     if (myToken == "jwt expired") {
       // access token 만료
       const userInfo = jwt.decode(tokenValue, process.env.JWT_SECRET);
-      console.log(userInfo);
       const user_id = userInfo.user_id;
       let refresh_token;
       user.findOne({ where: user_id }).then((u) => {
