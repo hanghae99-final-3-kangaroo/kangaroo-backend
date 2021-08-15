@@ -6,7 +6,7 @@
   "scripts": {
     "test": "mocha",
     "start:dev": "./test/mock-test.js --exit"
-},
+  },
   "keywords": [],
   "author": "",
   "license": "ISC",

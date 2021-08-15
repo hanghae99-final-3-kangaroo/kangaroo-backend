@@ -6,13 +6,13 @@ const likeMiddleware = require("../middlewares/like-middleware");
 const { Sequelize } = require("sequelize");
 const router = express.Router(); // 라우터라고 선언한다.
 const { or, like } = Sequelize.Op;
+
 // Post Part
 
 // free_board 글 작성
 router.post("/post", authMiddleware, async (req, res, next) => {
   try {
-    const { user } = res.locals;
-    const user_id = user.user_id;
+    const { user_id } = res.locals.user;
 
     const { title, category, content, country_id } = req.body;
     let { img_list } = req.body;
@@ -145,6 +145,7 @@ router.get("/post", likeMiddleware, async (req, res, next) => {
     });
   }
 });
+
 router.get("/search", likeMiddleware, async (req, res, next) => {
   try {
     const { pageSize, pageNum, category, country_id, sort } = req.query;
@@ -243,6 +244,7 @@ router.get("/search", likeMiddleware, async (req, res, next) => {
     });
   }
 });
+
 router.get("/post/:post_id/view_count", async (req, res, next) => {
   try {
     const { post_id } = req.params;
@@ -258,6 +260,7 @@ router.get("/post/:post_id/view_count", async (req, res, next) => {
     });
   }
 });
+
 // free_board 글 상세 조회
 router.get("/post/:post_id", likeMiddleware, async (req, res, next) => {
   try {
@@ -443,6 +446,7 @@ router.get("/post/:post_id/like", authMiddleware, async (req, res, next) => {
     });
   }
 });
+
 // Comment Part
 
 // free_comment 작성

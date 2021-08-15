@@ -206,6 +206,7 @@ router.get("/search", likeMiddleware, async (req, res, next) => {
     };
     if (category !== undefined) options.where.category = category;
     options.where.univ_id = univ_id;
+
     const result = await univ_board.findAll(options);
 
     for (let i = 0; i < result.length; i++) {
@@ -250,6 +251,7 @@ router.get("/search", likeMiddleware, async (req, res, next) => {
     });
   }
 });
+
 router.get("/post/:post_id/view_count", async (req, res, next) => {
   try {
     const { post_id } = req.params;
@@ -450,6 +452,7 @@ router.get("/post/:post_id/like", authMiddleware, async (req, res, next) => {
     });
   }
 });
+
 // Comment Part
 
 // univ_comment 작성
