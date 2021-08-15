@@ -140,7 +140,12 @@ router.get("/post", authMiddleware, async (req, res, next) => {
       raw: true,
     });
 
+    const fixed_post = await univ_board.findAll({
+      where: { is_fixed: true },
+    });
+
     res.status(200).send({
+      fixed_post,
       result,
       page_count: Math.ceil(page_count[0]["post_count"] / pageSize),
       ok: true,
