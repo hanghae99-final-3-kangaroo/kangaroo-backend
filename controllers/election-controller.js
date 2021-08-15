@@ -1,23 +1,13 @@
-const express = require("express");
-const { election, university, country, vote, candidate } = require("../models");
-const router = express.Router(); // 라우터라고 선언한다.
-const Sequelize = require("sequelize");
-const authMiddleware = require("../middlewares/auth-middleware");
-const imgUploader = require("../middlewares/img-uploader");
 const fs = require("fs");
 
 const path = require("path");
 const appDir = path.dirname(require.main.filename);
+const { electionService } = require("../services");
 
-router.post("/", authMiddleware, async (req, res) => {
+const postElection = async (req, res, next) => {
   const { user_id } = res.locals.user;
   const { name, content, univ_id, candidates, end_date, start_date } = req.body;
   try {
-    const { admin_id: univAdmin, country_id } = await university.findOne({
-      where: { univ_id },
-      attributes: ["admin_id", "country_id"],
-    });
-
     if (candidates.length == 0) {
       res.status(403).send({
         ok: false,
@@ -33,6 +23,7 @@ router.post("/", authMiddleware, async (req, res) => {
       });
       return;
     }
+
     if (new Date(end_date) < new Date()) {
       res.status(403).send({
         ok: false,
@@ -40,6 +31,10 @@ router.post("/", authMiddleware, async (req, res) => {
       });
       return;
     }
+
+    const { admin_id: univAdmin, country_id } = await electionService.findUniv(
+      univ_id
+    );
 
     if (univAdmin == null) {
       res.status(403).send({
@@ -54,7 +49,8 @@ router.post("/", authMiddleware, async (req, res) => {
       });
       return;
     }
-    const createdElection = await election.create({
+
+    const createdElection = await electionService.createElection({
       name,
       content,
       country_id,
@@ -66,15 +62,12 @@ router.post("/", authMiddleware, async (req, res) => {
     candidates.forEach(function (c) {
       c.election_id = createdElection.election_id;
     });
-    await candidate.bulkCreate(candidates);
-    const myElection = await election.findOne({
-      where: { election_id: createdElection.election_id },
-      include: [
-        { model: university, attributes: ["name"] },
-        { model: country, attributes: ["name"] },
-        { model: candidate },
-      ],
-    });
+
+    await electionService.bulkCreateCandidates(candidates);
+
+    const myElection = await electionService.findElection(
+      createdElection.election_id
+    );
 
     res.status(200).send({
       ok: true,
@@ -87,9 +80,9 @@ router.post("/", authMiddleware, async (req, res) => {
       message: `${err}`,
     });
   }
-});
+};
 
-router.get("/", authMiddleware, async (req, res, next) => {
+const getElectionList = async (req, res) => {
   const { univ_id, user_id } = res.locals.user;
   try {
     if (univ_id == null) {
@@ -99,45 +92,24 @@ router.get("/", authMiddleware, async (req, res, next) => {
       });
       return;
     }
-    const elections = await election.findAll({
-      where: { univ_id },
-      include: [
-        { model: university, attributes: ["name"] },
-        { model: country, attributes: ["name"] },
-        { model: candidate },
-        {
-          model: vote,
-          required: false,
-          where: { user_id },
-          attributes: ["vote_id"],
-        },
-      ],
-    });
+    const elections = await electionService.findAllElection(univ_id, user_id);
     res.status(200).send({
       ok: true,
       result: elections,
     });
   } catch (err) {
-    console.error(err);
     res.status(400).send({
       ok: false,
       message: `${err}`,
     });
   }
-});
+};
 
-router.get("/:election_id", authMiddleware, async (req, res, next) => {
+const getElection = async (req, res) => {
   const { univ_id } = res.locals.user;
   const { election_id } = req.params;
   try {
-    const myElection = await election.findOne({
-      where: { election_id },
-      include: [
-        { model: university, attributes: ["name"] },
-        { model: country, attributes: ["name"] },
-        { model: candidate },
-      ],
-    });
+    const myElection = await electionService.findElection(election_id);
 
     if (myElection == null) {
       res.status(403).send({
@@ -171,9 +143,9 @@ router.get("/:election_id", authMiddleware, async (req, res, next) => {
       message: `${err}`,
     });
   }
-});
+};
 
-router.put("/:election_id", authMiddleware, async (req, res) => {
+const putElection = async (req, res) => {
   const { user_id } = res.locals.user;
   const { election_id } = req.params;
   const {
@@ -186,9 +158,7 @@ router.put("/:election_id", authMiddleware, async (req, res) => {
     end_date,
   } = req.body;
   try {
-    const electionCheck = await election.findOne({
-      where: { election_id },
-    });
+    const electionCheck = await electionService.findElection(election_id);
 
     if (electionCheck == null) {
       res.status(403).send({
@@ -198,10 +168,7 @@ router.put("/:election_id", authMiddleware, async (req, res) => {
       return;
     }
 
-    const { admin_id: univAdmin } = await university.findOne({
-      where: { univ_id },
-      attributes: ["admin_id"],
-    });
+    const { admin_id: univAdmin } = await electionService.findUniv(univ_id);
     if (univAdmin == null) {
       res.status(403).send({
         ok: false,
@@ -216,7 +183,7 @@ router.put("/:election_id", authMiddleware, async (req, res) => {
       return;
     }
 
-    await election.update(
+    await electionService.putElection(
       {
         name,
         content,
@@ -225,14 +192,11 @@ router.put("/:election_id", authMiddleware, async (req, res) => {
         start_date,
         end_date,
       },
-      {
-        where: { election_id },
-      }
+      election_id
     );
+
     for (c of candidates) {
-      await candidate.update(c, {
-        where: { candidate_id: c.candidate_id },
-      });
+      await electionService.putCandidate(c, c.candidate_id);
     }
     res.status(200).send({
       ok: true,
@@ -244,17 +208,15 @@ router.put("/:election_id", authMiddleware, async (req, res) => {
       message: `${err}`,
     });
   }
-});
+};
 
-router.delete("/:election_id", authMiddleware, async (req, res) => {
+const delElection = async (req, res) => {
   const { election_id } = req.params;
   const { univ_id, user_id } = res.locals.user;
   try {
-    const check_election = await election.findOne({
-      where: { election_id },
-    });
+    const electionCheck = await electionService.findElection(election_id);
 
-    if (check_election == null) {
+    if (electionCheck == null) {
       res.status(403).send({
         ok: false,
         message: "존재하지 않는 선거입니다.",
@@ -262,10 +224,7 @@ router.delete("/:election_id", authMiddleware, async (req, res) => {
       return;
     }
 
-    const { admin_id: univAdmin } = await university.findOne({
-      where: { univ_id },
-      attributes: ["admin_id"],
-    });
+    const { admin_id: univAdmin } = await electionService.findUniv(univ_id);
 
     if (univAdmin == null) {
       res.status(403).send({
@@ -280,17 +239,14 @@ router.delete("/:election_id", authMiddleware, async (req, res) => {
       });
       return;
     }
-    const myCandidates = await candidate.findAll({ where: { election_id } });
+    const myCandidates = await electionService.findAllCandidates(election_id);
+
     for (myCandidate of myCandidates) {
       fs.unlinkSync(appDir + "/public/" + myCandidate.photo);
       myCandidate.destroy();
     }
-    await vote.destroy({
-      where: { election_id },
-    });
-    await election.destroy({
-      where: { election_id },
-    });
+    await electionService.delVotes(election_id);
+    await electionService.delElection(election_id);
     res.status(200).send({
       ok: true,
     });
@@ -301,16 +257,16 @@ router.delete("/:election_id", authMiddleware, async (req, res) => {
       message: `${err}`,
     });
   }
-});
+};
 
-router.post("/vote/:election_id", authMiddleware, async (req, res) => {
+const doVote = async (req, res) => {
   const { candidate_id } = req.body;
   const { user_id, univ_id } = res.locals.user;
   const { election_id } = req.params;
   try {
-    const myElection = await election.findOne({ where: { election_id } });
+    const electionCheck = await electionService.findElection(election_id);
 
-    if (myElection == null) {
+    if (electionCheck == null) {
       res.status(403).send({
         ok: false,
         message: "존재하지 않는 선거입니다.",
@@ -325,21 +281,21 @@ router.post("/vote/:election_id", authMiddleware, async (req, res) => {
         message: "내가 재학중인 대학교가 없습니다.",
       });
       return;
-    } else if (myElection.univ_id != univ_id) {
+    } else if (electionCheck.univ_id != univ_id) {
       //내가 다니는 대학이 아닐 때
       res.status(401).send({
         ok: false,
         message: "내가 재학중인 대학교가 아닙니다.",
       });
       return;
-    } else if (myElection.start_date > new Date()) {
+    } else if (electionCheck.start_date > new Date()) {
       //투표 기간이 지났을 때
       res.status(403).send({
         ok: false,
         message: "투표 기간이 시작하지 않았습니다.",
       });
       return;
-    } else if (myElection.end_date < new Date()) {
+    } else if (electionCheck.end_date < new Date()) {
       //투표 기간이 지났을 때
       res.status(403).send({
         ok: false,
@@ -348,7 +304,8 @@ router.post("/vote/:election_id", authMiddleware, async (req, res) => {
       return;
     } else {
       // 이미 투표했는지 체크
-      const checkVote = await vote.findOne({ where: { user_id, election_id } });
+      const checkVote = await electionService.findVote(user_id, election_id);
+
       if (checkVote) {
         res.status(403).send({
           ok: false,
@@ -358,9 +315,7 @@ router.post("/vote/:election_id", authMiddleware, async (req, res) => {
       }
     }
 
-    //이미 투표했을 때
-
-    const createdVote = await vote.create({
+    const createdVote = await electionService.createVote({
       user_id,
       election_id,
       candidate_id,
@@ -376,13 +331,13 @@ router.post("/vote/:election_id", authMiddleware, async (req, res) => {
       message: `${err}`,
     });
   }
-});
+};
 
-router.get("/:election_id/result", authMiddleware, async (req, res) => {
+const voteResult = async (req, res) => {
   const { election_id } = req.params;
   const { univ_id } = res.locals.user;
   try {
-    const myElection = await election.findOne({ where: { election_id } });
+    const electionCheck = await electionService.findElection(election_id);
     if (univ_id == null) {
       //내가 다니는 대학이 없을 때
       res.status(403).send({
@@ -390,14 +345,14 @@ router.get("/:election_id/result", authMiddleware, async (req, res) => {
         message: "내가 재학중인 대학교가 없습니다.",
       });
       return;
-    } else if (myElection.univ_id != univ_id) {
+    } else if (electionCheck.univ_id != univ_id) {
       //내가 다니는 대학이 아닐 때
       res.status(401).send({
         ok: false,
         message: "내가 재학중인 대학교가 아닙니다.",
       });
       return;
-    } else if (myElection.end_date > new Date()) {
+    } else if (electionCheck.end_date > new Date()) {
       //투표 기간이 지났을 때
       res.status(403).send({
         ok: false,
@@ -406,16 +361,7 @@ router.get("/:election_id/result", authMiddleware, async (req, res) => {
       return;
     }
 
-    const countVote = await vote.findAll({
-      attributes: [
-        "candidate_id",
-        [Sequelize.fn("count", Sequelize.col("candidate_id")), "count"],
-      ],
-      where: {
-        election_id,
-      },
-      group: ["candidate_id"],
-    });
+    const countVote = await electionService.countVote(election_id);
     res.status(200).send({
       ok: true,
       result: countVote,
@@ -427,6 +373,14 @@ router.get("/:election_id/result", authMiddleware, async (req, res) => {
       message: `${err}`,
     });
   }
-});
+};
 
-module.exports = router;
+module.exports = {
+  postElection,
+  getElectionList,
+  getElection,
+  putElection,
+  delElection,
+  doVote,
+  voteResult,
+};
