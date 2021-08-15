@@ -2,12 +2,14 @@ const express = require("express"); // express를 쓴다
 const dotenv = require("dotenv");
 const passport = require("passport");
 const session = require("express-session");
+const routers = require("./routers");
 const app = express();
 const fs = require("fs");
 const passportConfig = require("./passport");
 const http = require("http");
 const https = require("https");
 const env = process.env.NODE_ENV;
+const logger = require("morgan")("dev");
 
 dotenv.config();
 app.set("port", process.env.PORT || 3000);
@@ -45,25 +47,9 @@ app.use(passport.initialize());
 app.use(passport.session());
 
 app.use(express.static("public"));
-const userRouter = require("./routers/user");
-const freeBoardRouter = require("./routers/freeBoard");
-const univBoardRouter = require("./routers/univBoard");
-const electionRouter = require("./routers/election");
-const authRouter = require("./routers/auth");
-const messageRouter = require("./routers/message");
-const utilRouter = require("./routers/util");
-const issueRouter = require("./routers/issue");
-const sampleRouter = require("./routers/sample");
 
-app.use("/api", [userRouter]);
-app.use("/auth", [authRouter]);
-app.use("/free", [freeBoardRouter]);
-app.use("/univ", [univBoardRouter]);
-app.use("/election", [electionRouter]);
-app.use("/message", [messageRouter]);
-app.use("/util", [utilRouter]);
-app.use("/issue", [issueRouter]);
-app.use("/test", [sampleRouter]);
+app.use(logger);
+app.use(routers);
 
 app.get("/", (req, res) => {
   res.send("Hello, Kangaroo");
