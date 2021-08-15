@@ -3,7 +3,7 @@ const { election, university, country, vote, candidate } = require("../models");
 const router = express.Router(); // 라우터라고 선언한다.
 const Sequelize = require("sequelize");
 const authMiddleware = require("../middlewares/auth-middleware");
-const imgUploader = require("../middlewares/imgUploader");
+const imgUploader = require("../middlewares/img-uploader");
 const fs = require("fs");
 
 const path = require("path");

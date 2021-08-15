@@ -1,7 +1,7 @@
 const express = require("express");
 const router = express.Router(); // 라우터라고 선언한다.
 
-const imgUploader = require("../middlewares/imgUploader");
+const imgUploader = require("../middlewares/img-uploader");
 
 router.post("/image", imageUploader.single("img"), async (req, res) => {
   try {
