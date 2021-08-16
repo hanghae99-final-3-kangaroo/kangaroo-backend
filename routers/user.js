@@ -439,6 +439,25 @@ router.delete("/user/:user_id", authMiddleware, async (req, res) => {
   }
 });
 
+router.get("/is-admin", authMiddleware, async (req, res) => {
+  const { user_id } = res.locals.user;
+
+  try {
+    const checkAdmin = await university.findOne({
+      where: { admin_id: user_id },
+    });
+    res.status(200).send({
+      ok: true,
+      result: checkAdmin,
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(400).send({
+      ok: false,
+      message: `${err} : 관리자 변경 실패`,
+    });
+  }
+});
 router.post("/admin", authMiddleware, async (req, res) => {
   const { user_id } = res.locals.user;
   const { target_user_id } = req.body;
