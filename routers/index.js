@@ -8,7 +8,7 @@ const electionRouter = require("./election-router");
 const authRouter = require("./auth-router");
 const messageRouter = require("./message");
 const utilRouter = require("./util");
-const issueRouter = require("./issue");
+const issueRouter = require("./issue-router");
 const sampleRouter = require("./sample");
 
 router.use("/api", [userRouter]);
