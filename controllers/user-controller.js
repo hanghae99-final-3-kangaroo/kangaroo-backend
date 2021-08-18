@@ -1,21 +1,6 @@
-const express = require("express");
-const {
-  user,
-  university,
-  country,
-  vote,
-  free_board,
-  free_comment,
-  free_like,
-  univ_board,
-  univ_comment,
-  univ_like,
-} = require("../models");
-const router = express.Router(); // 라우터라고 선언한다.
-const authMiddleware = require("../middlewares/auth-middleware");
 const bcrypt = require("bcrypt");
 const Joi = require("joi");
-const { Sequelize } = require("sequelize");
+const { userService } = require("../services");
 
 const postUserModel = Joi.object({
   email: Joi.string().email().required(),
@@ -26,15 +11,13 @@ const postUserModel = Joi.object({
     .required(),
 });
 
-router.post("/user", async (req, res) => {
+const makeUser = async (req, res, next) => {
   try {
     const { email, password, nickname } = await postUserModel.validateAsync(
       req.body
     );
     const provider = "local";
-    const dupEmail = await user.findOne({
-      where: { email },
-    });
+    const dupEmail = await userService.findUser({ email });
     if (!password) {
       res.status(403).send({
         ok: false,
@@ -49,9 +32,7 @@ router.post("/user", async (req, res) => {
       });
       return;
     }
-    const dupNick = await user.findOne({
-      where: { nickname },
-    });
+    const dupNick = await userService.findUser({ nickname });
     if (dupNick) {
       res.status(403).send({
         ok: false,
@@ -63,12 +44,13 @@ router.post("/user", async (req, res) => {
     const salt = await bcrypt.genSalt();
     const hashedPassword = await bcrypt.hash(password, salt);
 
-    const createdUser = await user.create({
+    const createdUser = await userService.createUser({
       email,
       password: hashedPassword,
       nickname,
       provider,
     });
+
     res.status(200).send({
       ok: true,
       result: createdUser,
@@ -80,9 +62,9 @@ router.post("/user", async (req, res) => {
       message: `${err} : 회원가입 실패`,
     });
   }
-});
+};
 
-router.get("/user/my-post", authMiddleware, async (req, res, next) => {
+const getMyPost = async (req, res) => {
   const { user_id } = res.locals.user;
   const { pageSize, pageNum } = req.query;
   if (!pageSize || !pageNum) {
@@ -97,72 +79,17 @@ router.get("/user/my-post", authMiddleware, async (req, res, next) => {
     offset = pageSize * (pageNum - 1);
   }
   try {
-    const options = {
-      subQuery: false,
-      raw: true,
-      limit: Number(pageSize),
-      order: [["createdAt", "DESC"]],
-      offset: offset,
-      where: {},
-      attributes: {
-        include: [
-          [Sequelize.fn("COUNT", Sequelize.col("comment_id")), "coment_count"],
-        ],
-      },
-      include: [
-        {
-          model: free_comment,
-          attributes: [],
-        },
-      ],
-      group: ["post_id"],
-    };
-    options.where.user_id = user_id;
+    const my_free_post = await userService.getLikesFromPosts(
+      "free",
+      user_id,
+      await userService.findPosts("free", { user_id }, pageSize, offset, false)
+    );
+    const my_univ_post = await userService.getLikesFromPosts(
+      "univ",
+      user_id,
+      await userService.findPosts("univ", { user_id }, pageSize, offset, false)
+    );
 
-    const my_free_post = await free_board.findAll(options);
-    options.include[0].model = univ_comment;
-    const my_univ_post = await univ_board.findAll(options);
-
-    for (let i = 0; i < my_free_post.length; i++) {
-      let is_like = false;
-      my_like = await free_like.findOne({
-        where: {
-          user_id,
-          post_id: my_free_post[i].post_id,
-        },
-      });
-      if (my_like) {
-        is_like = true;
-      }
-
-      all_like = await free_like.findAll({
-        where: { post_id: my_free_post[i].post_id },
-      });
-      my_free_post[i].like = {
-        is_like,
-        all_like: all_like.length,
-      };
-    }
-
-    for (let i = 0; i < my_univ_post.length; i++) {
-      let is_like = false;
-      my_like = await univ_like.findOne({
-        where: {
-          user_id,
-          post_id: my_free_post[i].post_id,
-        },
-      });
-      if (my_like) {
-        is_like = true;
-      }
-      all_like = await univ_like.findAll({
-        where: { post_id: my_univ_post[i].post_id },
-      });
-      my_univ_post[i].like = {
-        is_like,
-        all_like: all_like.length,
-      };
-    }
     res.status(200).send({
       ok: true,
       my_free_post,
@@ -175,9 +102,9 @@ router.get("/user/my-post", authMiddleware, async (req, res, next) => {
       message: `${err} : 유저 정보 조회 실패`,
     });
   }
-});
+};
 
-router.get("/user/my-comment", authMiddleware, async (req, res, next) => {
+const getMyComment = async (req, res) => {
   const { user_id } = res.locals.user;
   const { pageSize, pageNum } = req.query;
   if (!pageSize || !pageNum) {
@@ -192,72 +119,17 @@ router.get("/user/my-comment", authMiddleware, async (req, res, next) => {
     offset = pageSize * (pageNum - 1);
   }
   try {
-    const options = {
-      subQuery: false,
-      raw: true,
-      limit: Number(pageSize),
-      order: [["createdAt", "DESC"]],
-      offset: offset,
-      where: {},
-      attributes: {
-        include: [
-          [Sequelize.fn("COUNT", Sequelize.col("comment_id")), "coment_count"],
-        ],
-      },
-      include: [
-        {
-          model: free_comment,
-          attributes: [],
-          where: { user_id },
-        },
-      ],
-      group: ["post_id"],
-    };
+    const my_free_comment = await userService.getLikesFromPosts(
+      "free",
+      user_id,
+      await userService.findPosts("free", { user_id }, pageSize, offset, true)
+    );
+    const my_univ_comment = await userService.getLikesFromPosts(
+      "univ",
+      user_id,
+      await userService.findPosts("univ", { user_id }, pageSize, offset, true)
+    );
 
-    const my_free_comment = await free_board.findAll(options);
-    options.include[0].model = univ_comment;
-    const my_univ_comment = await univ_board.findAll(options);
-
-    for (let i = 0; i < my_free_comment.length; i++) {
-      let is_like = false;
-      my_like = await free_like.findOne({
-        where: {
-          user_id,
-          post_id: my_free_comment[i].post_id,
-        },
-      });
-      if (my_like) {
-        is_like = true;
-      }
-
-      all_like = await free_like.findAll({
-        where: { post_id: my_free_comment[i].post_id },
-      });
-      my_free_comment[i].like = {
-        is_like,
-        all_like: all_like.length,
-      };
-    }
-
-    for (let i = 0; i < my_univ_comment.length; i++) {
-      let is_like = false;
-      my_like = await univ_like.findOne({
-        where: {
-          user_id,
-          post_id: my_univ_comment[i].post_id,
-        },
-      });
-      if (my_like) {
-        is_like = true;
-      }
-      all_like = await univ_like.findAll({
-        where: { post_id: my_univ_comment[i].post_id },
-      });
-      my_univ_comment[i].like = {
-        is_like,
-        all_like: all_like.length,
-      };
-    }
     res.status(200).send({
       ok: true,
       my_free_comment,
@@ -270,9 +142,9 @@ router.get("/user/my-comment", authMiddleware, async (req, res, next) => {
       message: `${err} : 유저 정보 조회 실패`,
     });
   }
-});
+};
 
-router.get("/user/:user_id", authMiddleware, async (req, res, next) => {
+const getUserInfo = async (req, res) => {
   const { user_id } = req.params;
   try {
     if (res.locals.user.user_id != user_id) {
@@ -282,13 +154,7 @@ router.get("/user/:user_id", authMiddleware, async (req, res, next) => {
       });
       return;
     }
-    const myInfo = await user.findOne({
-      where: { user_id },
-      include: [
-        { model: university, attributes: ["name"] },
-        { model: country, attributes: ["name"] },
-      ],
-    });
+    const myInfo = await userService.findUser({ user_id });
     res.status(200).send({
       ok: true,
       result: myInfo,
@@ -300,9 +166,9 @@ router.get("/user/:user_id", authMiddleware, async (req, res, next) => {
       message: `${err} : 유저 정보 조회 실패`,
     });
   }
-});
+};
 
-router.put("/user/:user_id", authMiddleware, async (req, res) => {
+const updateUserInfo = async (req, res) => {
   const { user_id } = req.params;
 
   const { email, password, nickname, new_password } = req.body;
@@ -316,9 +182,7 @@ router.put("/user/:user_id", authMiddleware, async (req, res) => {
       return;
     }
 
-    const user_check = await user.findOne({
-      where: { user_id },
-    });
+    const user_check = await userService.findUser({ user_id });
 
     if (password != undefined) {
       const authenticate = await bcrypt.compare(password, user_check.password);
@@ -341,9 +205,7 @@ router.put("/user/:user_id", authMiddleware, async (req, res) => {
     }
 
     if (email != undefined) {
-      const dupEmail = await user.findOne({
-        where: { email },
-      });
+      const dupEmail = await userService.findUser({ email });
       if (dupEmail) {
         res.status(403).send({
           ok: false,
@@ -354,9 +216,7 @@ router.put("/user/:user_id", authMiddleware, async (req, res) => {
     }
 
     if (nickname != undefined) {
-      const dupNickname = await user.findOne({
-        where: { nickname },
-      });
+      const dupNickname = await userService.findUser({ nickname });
 
       if (dupNickname) {
         res.status(403).send({
@@ -376,7 +236,6 @@ router.put("/user/:user_id", authMiddleware, async (req, res) => {
     }
 
     let user_info_update = {};
-
     if (email) user_info_update.email = email;
     if (nickname) user_info_update.nickname = nickname;
     if (new_password) {
@@ -385,7 +244,7 @@ router.put("/user/:user_id", authMiddleware, async (req, res) => {
       user_info_update.password = hashedPassword;
     }
 
-    await user_check.update(user_info_update);
+    await userService.updateTarget(user_check, user_info_update);
 
     res.status(200).send({
       ok: true,
@@ -397,9 +256,9 @@ router.put("/user/:user_id", authMiddleware, async (req, res) => {
       message: `${err} : 유저 정보 업데이트 실패`,
     });
   }
-});
+};
 
-router.delete("/user/:user_id", authMiddleware, async (req, res) => {
+const deleteUserInfo = async (req, res) => {
   const { user_id } = req.params;
   try {
     if (res.locals.user.user_id != user_id) {
@@ -407,26 +266,9 @@ router.delete("/user/:user_id", authMiddleware, async (req, res) => {
         ok: false,
         message: "Unauthorized",
       });
+      await userService.delUser(user_id);
       return;
     }
-    await free_board.destroy({
-      where: { user_id },
-    });
-    await free_comment.destroy({
-      where: { user_id },
-    });
-    await univ_board.destroy({
-      where: { user_id },
-    });
-    await univ_comment.destroy({
-      where: { user_id },
-    });
-    await vote.destroy({
-      where: { user_id },
-    });
-    await user.destroy({
-      where: { user_id },
-    });
     res.status(200).send({
       ok: true,
     });
@@ -437,14 +279,14 @@ router.delete("/user/:user_id", authMiddleware, async (req, res) => {
       message: `${err} : 탈퇴 실패`,
     });
   }
-});
+};
 
-router.get("/is-admin", authMiddleware, async (req, res) => {
+const checkAdmin = async (req, res) => {
   const { user_id } = res.locals.user;
 
   try {
-    const checkAdmin = await university.findOne({
-      where: { admin_id: user_id },
+    const checkAdmin = await userService.findUniv({
+      admin_id: user_id,
     });
     res.status(200).send({
       ok: true,
@@ -457,17 +299,18 @@ router.get("/is-admin", authMiddleware, async (req, res) => {
       message: `${err} : 관리자 변경 실패`,
     });
   }
-});
-router.post("/admin", authMiddleware, async (req, res) => {
+};
+
+const changeAdmin = async (req, res) => {
   const { user_id } = res.locals.user;
   const { target_user_id } = req.body;
 
   try {
-    const check_target_user_id = await user.findOne({
-      where: { user_id: target_user_id },
+    const targetUser = await userService.findUser({
+      user_id: target_user_id,
     });
 
-    if (check_target_user_id == null) {
+    if (targetUser == null) {
       res.status(403).send({
         ok: false,
         message: "존재하지 않는 유저입니다.",
@@ -475,8 +318,8 @@ router.post("/admin", authMiddleware, async (req, res) => {
       return;
     }
 
-    const targetUniv = await university.findOne({
-      where: { admin_id: user_id },
+    const targetUniv = await userService.findUniv({
+      admin_id: user_id,
     });
 
     if (!targetUniv) {
@@ -487,9 +330,6 @@ router.post("/admin", authMiddleware, async (req, res) => {
       return;
     }
 
-    const targetUser = await user.findOne({
-      where: { user_id: target_user_id },
-    });
     if (targetUser.univ_id != targetUniv.univ_id) {
       res.status(403).send({
         ok: false,
@@ -498,10 +338,12 @@ router.post("/admin", authMiddleware, async (req, res) => {
       return;
     }
 
-    targetUniv.update({ admin_id: target_user_id });
-    const resultUniv = await university.findOne({
-      where: { univ_id: targetUniv.univ_id },
+    await userService.updateTarget(targetUniv, { admin_id: target_user_id });
+
+    const resultUniv = await userService.findUniv({
+      univ_id: targetUniv.univ_id,
     });
+
     res.status(200).send({
       ok: true,
       result: resultUniv,
@@ -513,5 +355,15 @@ router.post("/admin", authMiddleware, async (req, res) => {
       message: `${err} : 관리자 변경 실패`,
     });
   }
-});
-module.exports = router;
+};
+
+module.exports = {
+  makeUser,
+  getMyPost,
+  getMyComment,
+  getUserInfo,
+  updateUserInfo,
+  deleteUserInfo,
+  checkAdmin,
+  changeAdmin,
+};

@@ -1,7 +1,7 @@
 const express = require("express");
 const router = express.Router(); // express 라우팅 기능을 사용하기 위해서 router 객체가 필요합니다.
 
-const userRouter = require("./user");
+const userRouter = require("./user-router");
 const freeBoardRouter = require("./freeBoard");
 const univBoardRouter = require("./univBoard");
 const electionRouter = require("./election-router");
