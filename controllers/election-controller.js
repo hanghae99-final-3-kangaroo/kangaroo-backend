@@ -198,8 +198,10 @@ const putElection = async (req, res) => {
     for (c of candidates) {
       await electionService.putCandidate(c, c.candidate_id);
     }
+    const myElection = await electionService.findElection(election_id);
     res.status(200).send({
       ok: true,
+      myElection,
     });
   } catch (err) {
     console.error(err);
