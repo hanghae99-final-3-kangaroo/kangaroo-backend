@@ -97,7 +97,7 @@ const getPost = async (req, res, next) => {
 
     res.status(200).send({
       fixed_post,
-      // result,
+      result,
       page_count: Math.ceil(page_count[0]["post_count"] / pageSize),
       ok: true,
     });
