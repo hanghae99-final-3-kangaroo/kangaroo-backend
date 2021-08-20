@@ -40,14 +40,14 @@ const production = {
 const test = {
   username: env.DB_USER,
   password: env.DB_PW,
-  database: env.DB_NAME,
+  database: env.DB_NAME + "_test",
   host: env.DB_HOST,
   dialect: "mysql",
   timezone: "+09:00",
   define: {
     freezeTableName: true,
   },
-  logging: false,
+  logging: true,
   dialectOptions: {
     charset: "utf8mb4",
     dateStrings: true,
