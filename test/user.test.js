@@ -66,7 +66,7 @@ describe("updateUserInfo", () => {
     params: {
       user_id: 1,
     },
-    body: {},
+    body: { email: null, password: null, nickname: null },
   };
   const res = {
     locals: { user: { user_id: 1 } },
@@ -75,7 +75,6 @@ describe("updateUserInfo", () => {
   };
 
   test("수정할 정보가 없으면 403 응답", async () => {
-    res.locals.user.user_id = 3;
     await updateUserInfo(req, res);
     expect(res.status).toBeCalledWith(401);
   });
@@ -115,6 +114,7 @@ describe("updateUserInfo", () => {
 });
 
 describe("checkAdmin", () => {
+  const req = {};
   const res = {
     locals: { user: { user_id: 1 } },
     status: jest.fn(() => res),
@@ -146,6 +146,7 @@ describe("deleteUserInfo", () => {
   });
 
   test("정상 회원 정보 삭제시 200 응답", async () => {
+    res.locals.user.user_id = 1;
     await deleteUserInfo(req, res);
     expect(res.status).toBeCalledWith(200);
   });
