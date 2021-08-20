@@ -76,7 +76,7 @@ describe("updateUserInfo", () => {
 
   test("수정할 정보가 없으면 403 응답", async () => {
     await updateUserInfo(req, res);
-    expect(res.status).toBeCalledWith(401);
+    expect(res.status).toBeCalledWith(403);
   });
   test("본인 정보 수정이 아니면 401 응답", async () => {
     res.locals.user.user_id = 3;
@@ -106,6 +106,7 @@ describe("updateUserInfo", () => {
     expect(res.status).toBeCalledWith(403);
   });
   test("정상 회원 정보 수정시 200 응답", async () => {
+    req.params.user_id = 1;
     req.body.email = "test@naver.com";
     req.body.nickname = "Pray3";
     await updateUserInfo(req, res);
