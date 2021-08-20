@@ -47,7 +47,7 @@ const test = {
   define: {
     freezeTableName: true,
   },
-  logging: true,
+  logging: false,
   dialectOptions: {
     charset: "utf8mb4",
     dateStrings: true,
