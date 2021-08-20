@@ -80,7 +80,10 @@ const getPost = async (req, res, next) => {
 
     const page_count = await univBoardService.countPage(univ_id);
 
-    const fixed_post = await univBoardService.findFixedPost();
+    const fixed_post = await univBoardService.getLikesFromPosts(
+      user_id,
+      await univBoardService.findFixedPost()
+    );
 
     for (i = 0; i < fixed_post.length; i++) {
       img_list = fixed_post[i]["img_list"];
@@ -94,7 +97,7 @@ const getPost = async (req, res, next) => {
 
     res.status(200).send({
       fixed_post,
-      result,
+      // result,
       page_count: Math.ceil(page_count[0]["post_count"] / pageSize),
       ok: true,
     });

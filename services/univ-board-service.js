@@ -194,6 +194,8 @@ const countViewPost = async (post_id) => {
 
 const findFixedPost = async () => {
   return await univ_board.findAll({
+    subQuery: false,
+    raw: true,
     where: { is_fixed: true },
     attributes: {
       include: [
@@ -206,6 +208,7 @@ const findFixedPost = async () => {
         attributes: [],
       },
     ],
+    group: ["post_id"],
   });
 };
 
