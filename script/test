@@ -1,2 +1,2 @@
 #!/bin/sh
-npx jest
+npx jest --detectOpenHandles --forceExit
