@@ -33,7 +33,6 @@ https://www.notion.so/yzkim9501/1e66a5c0275a4f6aa29f75d34eb0b095#792c4fba41de496
 ### Backend (Node.js)
   - 장상현
   - 김예지
-  - 이은택
 
 ### Frontend (React)
   - 김정후
