@@ -9,7 +9,7 @@ const searchPost = async (req, res, next) => {
     const { pageSize, pageNum, category, country_id, sort } = req.query;
     let user_id, univSearch;
     if (res.locals.user !== null) {
-      user_id = res.locals.user;
+      user_id = res.locals.user.user_id;
     }
     if (!pageSize || !pageNum) {
       res.status(403).send({
