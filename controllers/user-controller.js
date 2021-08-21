@@ -18,6 +18,7 @@ const makeUser = async (req, res, next) => {
     );
     const provider = "local";
     const dupEmail = await userService.findUser({ email });
+
     if (!password) {
       res.status(403).send({
         ok: false,
@@ -92,8 +93,7 @@ const getMyPost = async (req, res) => {
 
     res.status(200).send({
       ok: true,
-      my_free_post,
-      my_univ_post,
+      posts: userService.concatenateArray(my_free_post, my_univ_post),
     });
   } catch (err) {
     console.error(err);
@@ -132,8 +132,7 @@ const getMyComment = async (req, res) => {
 
     res.status(200).send({
       ok: true,
-      my_free_comment,
-      my_univ_comment,
+      comments: userService.concatenateArray(my_free_comment, my_univ_comment),
     });
   } catch (err) {
     console.error(err);
@@ -183,7 +182,6 @@ const updateUserInfo = async (req, res) => {
     }
 
     const user_check = await userService.findUser({ user_id });
-
     if (password != undefined) {
       const authenticate = await bcrypt.compare(password, user_check.password);
 

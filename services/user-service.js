@@ -40,11 +40,16 @@ const findPosts = async (
     order: [["createdAt", "DESC"]],
     offset: offset,
     where: {},
-    attributes: {
-      include: [
-        [Sequelize.fn("COUNT", Sequelize.col("comment_id")), "coment_count"],
-      ],
-    },
+    attributes: [
+      "post_id",
+      "user_id",
+      "title",
+      "content",
+      "category",
+      "view_count",
+      "createdAt",
+      [Sequelize.fn("COUNT", Sequelize.col("comment_id")), "comment_count"],
+    ],
     include: [
       {
         model: free_comment,
@@ -126,6 +131,17 @@ const updateTarget = async (target, field) => {
   await target.update(field);
 };
 
+const concatenateArray = (free, univ) => {
+  free.forEach(function (e) {
+    e.board = "free";
+  });
+  univ.forEach(function (e) {
+    e.board = "univ";
+  });
+  console.log(free.concat(univ));
+  return free.concat(univ);
+};
+
 module.exports = {
   findUser,
   createUser,
@@ -134,4 +150,5 @@ module.exports = {
   delUser,
   findUniv,
   updateTarget,
+  concatenateArray,
 };
