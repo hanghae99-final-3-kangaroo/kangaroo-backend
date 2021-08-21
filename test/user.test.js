@@ -6,7 +6,15 @@ const {
   deleteUserInfo,
   checkAdmin,
 } = require("../controllers/user-controller");
+const { user,  } = require("../models");
+const sequelize
+let globalUserId;
+let globalUserId2;
 
+beforeAll(async () => {
+  await user.destroy({ where: {} });
+  console.log("All user destroyed");
+});
 describe("makeUser", () => {
   const req = {
     body: { email: "yzkim9501@naver.com", password: "1234", nickname: "Pray" },
@@ -18,6 +26,7 @@ describe("makeUser", () => {
 
   test("회원가입 완료 후  200 응답", async () => {
     await makeUser(req, res);
+    globalUserId = res.result.user_id;
     expect(res.status).toBeCalledWith(200);
   });
   test("닉네임 중복시 403 응답", async () => {
@@ -34,6 +43,7 @@ describe("makeUser", () => {
   test("테스트용 회원2 생성", async () => {
     req.body.email = "kimyj950113@gmail.com";
     await makeUser(req, res);
+    globalUserId2 = res.result.user_id;
     expect(res.status).toBeCalledWith(200);
   });
 });
@@ -41,11 +51,11 @@ describe("makeUser", () => {
 describe("getUserInfo", () => {
   const req = {
     params: {
-      user_id: 1,
+      user_id: globalUserId,
     },
   };
   const res = {
-    locals: { user: { user_id: 1 } },
+    locals: { user: { user_id: globalUserId } },
     status: jest.fn(() => res),
     send: jest.fn(),
   };
@@ -55,7 +65,7 @@ describe("getUserInfo", () => {
     expect(res.status).toBeCalledWith(200);
   });
   test("본인 정보 조회가 아니면 401 응답", async () => {
-    res.locals.user.user_id = 3;
+    res.locals.user.user_id = globalUserId2;
     await getUserInfo(req, res);
     expect(res.status).toBeCalledWith(401);
   });
@@ -64,12 +74,12 @@ describe("getUserInfo", () => {
 describe("updateUserInfo", () => {
   const req = {
     params: {
-      user_id: 1,
+      user_id: globalUserId,
     },
     body: { email: null, password: null, nickname: null },
   };
   const res = {
-    locals: { user: { user_id: 1 } },
+    locals: { user: { user_id: globalUserId } },
     status: jest.fn(() => res),
     send: jest.fn(),
   };
@@ -79,12 +89,12 @@ describe("updateUserInfo", () => {
     expect(res.status).toBeCalledWith(403);
   });
   test("본인 정보 수정이 아니면 401 응답", async () => {
-    res.locals.user.user_id = 3;
+    res.locals.user.user_id = globalUserId2;
     await updateUserInfo(req, res);
     expect(res.status).toBeCalledWith(401);
   });
   test("비밀번호 미입력시 403 응답", async () => {
-    res.locals.user.user_id = 1;
+    res.locals.user.user_id = globalUserId;
     await updateUserInfo(req, res);
     expect(res.status).toBeCalledWith(403);
   });
@@ -106,7 +116,7 @@ describe("updateUserInfo", () => {
     expect(res.status).toBeCalledWith(403);
   });
   test("정상 회원 정보 수정시 200 응답", async () => {
-    req.params.user_id = 1;
+    req.params.user_id = globalUserId;
     req.body.email = "test@naver.com";
     req.body.nickname = "Pray3";
     await updateUserInfo(req, res);
@@ -117,7 +127,7 @@ describe("updateUserInfo", () => {
 describe("checkAdmin", () => {
   const req = {};
   const res = {
-    locals: { user: { user_id: 1 } },
+    locals: { user: { user_id: globalUserId } },
     status: jest.fn(() => res),
     send: jest.fn(),
   };
@@ -131,29 +141,29 @@ describe("checkAdmin", () => {
 describe("deleteUserInfo", () => {
   const req = {
     params: {
-      user_id: 1,
+      user_id: globalUserId,
     },
   };
   const res = {
-    locals: { user: { user_id: 1 } },
+    locals: { user: { user_id: globalUserId } },
     status: jest.fn(() => res),
     send: jest.fn(),
   };
 
   test("본인 정보 삭제가 아니면 401 응답", async () => {
-    res.locals.user.user_id = 3;
+    res.locals.user.user_id = globalUserId2;
     await deleteUserInfo(req, res);
     expect(res.status).toBeCalledWith(401);
   });
 
   test("정상 회원 정보 삭제시 200 응답", async () => {
-    res.locals.user.user_id = 1;
+    res.locals.user.user_id = globalUserId;
     await deleteUserInfo(req, res);
     expect(res.status).toBeCalledWith(200);
   });
   test("테스트용 회원 정보 삭제", async () => {
-    req.params.user_id = 2;
-    res.locals.user.user_id = 2;
+    req.params.user_id = globalUserId2;
+    res.locals.user.user_id = globalUserId2;
     await deleteUserInfo(req, res);
     expect(res.status).toBeCalledWith(200);
   });
@@ -169,3 +179,9 @@ describe("deleteUserInfo", () => {
 //     send: jest.fn(),
 //   };
 // });
+
+afterAll(async () => {
+  await user.destroy({ where: {} });
+  console.log("All user destroyed");
+  await sequelize.query("ALTER TABLE USER AUTO_INCREMENT = 1");
+});
