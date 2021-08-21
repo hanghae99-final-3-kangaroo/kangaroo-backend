@@ -1,6 +1,8 @@
 const express = require("express");
 const router = express.Router(); // 라우터라고 선언한다.
 
+const { utilController } = require("../controllers");
+const likeMiddleware = require("../middlewares/like-middleware");
 const imgUploader = require("../middlewares/img-uploader");
 
 router.post("/image", imageUploader.single("img"), async (req, res) => {
@@ -36,4 +38,7 @@ router.post("/bulk-image", imageUploader.array("img"), async (req, res) => {
     });
   }
 });
+
+router.get("/search", likeMiddleware, utilController.searchPost);
+
 module.exports = router;

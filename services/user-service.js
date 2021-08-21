@@ -135,11 +135,13 @@ const concatenateArray = (free, univ) => {
   free.forEach(function (e) {
     e.board = "free";
   });
-  univ.forEach(function (e) {
-    e.board = "univ";
-  });
-  console.log(free.concat(univ));
-  return free.concat(univ);
+  if (univ != null) {
+    univ.forEach(function (e) {
+      e.board = "univ";
+    });
+    return free.concat(univ);
+  }
+  return free;
 };
 
 module.exports = {
