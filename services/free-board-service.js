@@ -9,15 +9,35 @@ const Sequelize = require("sequelize");
 const { or, like } = Sequelize.Op;
 
 const createPost = async (post) => {
-  if (post["img_list"] == "") img_list = [];
+  if (post["img_list"] != undefined)
+    post["img_list"] = post["img_list"].toString();
+
   const result = await free_board.create(post);
+
+  if (result["img_list"] != null) {
+    result["img_list"] = result["img_list"].split(",");
+  } else {
+    result["img_list"] = [];
+  }
+
+  return result;
 };
 
 const updatePost = async (post, post_id) => {
+  if (post["img_list"] != undefined)
+    post["img_list"] = post["img_list"].toString();
+
   await free_board.update(post, {
     where: { post_id },
   });
+
   const newPost = await free_board.findOne({ where: { post_id } });
+
+  if (newPost["img_list"] != null) {
+    newPost["img_list"] = newPost["img_list"].split(",");
+  } else {
+    newPost["img_list"] = [];
+  }
 
   return newPost;
 };
@@ -38,15 +58,22 @@ const deletePost = async (post_id) => {
 };
 
 const findOnePost = async (post_id) => {
-  return await free_board.findOne({
+  const result = await free_board.findOne({
     where: { post_id },
     include: [
       {
         model: user,
-        attributes: ["user_id", "nickname"],
       },
     ],
   });
+
+  if (result["img_list"] != null) {
+    result["img_list"] = img_list = result["img_list"].split(",");
+  } else {
+    result["img_list"] = [];
+  }
+
+  return result;
 };
 
 const findAllPost = async (

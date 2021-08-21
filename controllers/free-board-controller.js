@@ -4,10 +4,7 @@ const makePost = async (req, res, next) => {
   try {
     const { user_id } = res.locals.user;
 
-    const { title, category, content, country_id } = req.body;
-    let { img_list } = req.body;
-
-    if (img_list == undefined) img_list = [];
+    const { title, category, content, country_id, img_list } = req.body;
 
     const result = await freeBoardService.createPost({
       user_id,
@@ -15,10 +12,8 @@ const makePost = async (req, res, next) => {
       category,
       content,
       country_id,
-      img_list: img_list.toString(),
+      img_list,
     });
-
-    // result.img_list = img_list;
 
     res.status(200).send({
       result,
@@ -35,7 +30,7 @@ const makePost = async (req, res, next) => {
 
 const getPost = async (req, res, next) => {
   try {
-    const user_id = res.locals.user.user_id;
+    const { user_id } = res.locals.user;
     const { pageSize, pageNum, category, country_id } = req.query;
     if (!pageSize || !pageNum) {
       res.status(403).send({
@@ -147,7 +142,7 @@ const getCountViewPost = async (req, res, next) => {
 const getOnePost = async (req, res, next) => {
   try {
     const { post_id } = req.params;
-    const is_user = res.locals.user;
+    const { user_id } = res.locals.user;
 
     const result = await freeBoardService.findOnePost(post_id);
 
@@ -160,20 +155,14 @@ const getOnePost = async (req, res, next) => {
     } else {
       let is_like = false;
 
-      if (is_user != null) {
-        my_like = await freeBoardService.findLike(post_id, is_user.user_id);
+      if (user_id != null) {
+        my_like = await freeBoardService.findLike(post_id, user_id);
         if (my_like) {
           is_like = true;
         }
       }
 
       all_like = await freeBoardService.findLike(post_id);
-
-      if (result.img_list != null) {
-        result.img_list = img_list = result["img_list"].split(",");
-      } else {
-        result.img_list = [];
-      }
 
       res.status(200).send({
         result,
@@ -195,9 +184,7 @@ const getOnePost = async (req, res, next) => {
 
 const putPost = async (req, res, next) => {
   try {
-    const { user } = res.locals;
-    const user_id = user.user_id;
-
+    const { user_id } = res.locals.user;
     const { post_id } = req.params;
     const { title, category, content, country_id, img_list } = req.body;
 
@@ -213,12 +200,10 @@ const putPost = async (req, res, next) => {
         category,
         content,
         country_id,
-        img_list: img_list.toString(),
+        img_list,
       },
       post_id
     );
-
-    newResult.img_list = img_list;
 
     res.status(200).send({
       result: newPost,
@@ -272,16 +257,17 @@ const likePost = async (req, res, next) => {
   try {
     const { user_id } = res.locals.user;
     const { post_id } = req.params;
+
     const my_like = await freeBoardService.findLike(post_id, user_id);
 
+    await freeBoardService.checkLike(my_like, post_id, user_id);
+
     if (my_like == null) {
-      await freeBoardService.checkLike(my_like, post_id, user_id);
       res.status(200).send({
         message: "liked post",
         ok: true,
       });
     } else {
-      await freeBoardService.checkLike(my_like, post_id, user_id);
       res.status(200).send({
         message: "disliked post",
         ok: true,
@@ -362,9 +348,7 @@ const getComment = async (req, res, next) => {
 
 const putComment = async (req, res, next) => {
   try {
-    const { user } = res.locals;
-    const user_id = user.user_id;
-
+    const { user_id } = res.locals.user;
     const { comment_id } = req.params;
     const { content } = req.body;
 
@@ -402,14 +386,12 @@ const putComment = async (req, res, next) => {
 
 const deleteComment = async (req, res, next) => {
   try {
-    const { user } = res.locals;
-    const user_id = user.user_id;
-
+    const { user_id } = res.locals.user;
     const { comment_id } = req.params;
 
-    const check_comment_id = await freeBoardService.findOneComment(comment_id);
-    //?????ㄷㅜ번하네 고쳐오셈
-    if (check_comment_id == null) {
+    const result = await freeBoardService.findOneComment(comment_id);
+
+    if (result == null) {
       res.status(403).send({
         ok: false,
         message: "댓글이 없습니다",
@@ -417,11 +399,7 @@ const deleteComment = async (req, res, next) => {
       return;
     }
 
-    const { user_id: comment_user_id } = await freeBoardService.findOneComment(
-      comment_id
-    );
-
-    if (user_id != comment_user_id) {
+    if (user_id != result["user_id"]) {
       return res.status(401).send({ ok: false, message: "작성자가 아닙니다" });
     }
 
