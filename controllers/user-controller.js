@@ -264,9 +264,11 @@ const deleteUserInfo = async (req, res) => {
         ok: false,
         message: "Unauthorized",
       });
-      await userService.delUser(user_id);
       return;
     }
+
+    await userService.delUser(user_id);
+
     res.status(200).send({
       ok: true,
     });
