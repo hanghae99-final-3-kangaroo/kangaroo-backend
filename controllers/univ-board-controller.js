@@ -9,7 +9,7 @@ const makePost = async (req, res, next) => {
 
     if (img_list == undefined) img_list = [];
 
-    const target = await univBoardService.createPost({
+    const result = await univBoardService.createPost({
       user_id,
       univ_id,
       title,
@@ -18,9 +18,6 @@ const makePost = async (req, res, next) => {
       is_fixed,
       img_list: img_list.toString(),
     });
-
-    const target_post_id = target.post_id;
-    const result = await univBoardService.findOnePost(target_post_id);
 
     result.img_list = img_list;
 
@@ -41,6 +38,7 @@ const getPost = async (req, res, next) => {
   try {
     const { user_id, univ_id } = res.locals.user;
     const { pageSize, pageNum, category } = req.query;
+
     if (!pageSize || !pageNum) {
       res.status(403).send({
         message: "pageSize, pageNum을 입력하세요.",
@@ -67,38 +65,21 @@ const getPost = async (req, res, next) => {
       await univBoardService.findAllPost(pageSize, offset, category, univ_id)
     );
 
-    let img_list;
-    for (i = 0; i < result.length; i++) {
-      img_list = result[i]["img_list"];
-      if (img_list != null) {
-        img_list = img_list.split(",");
-      } else {
-        img_list = [];
-      }
-      result[i].img_list = img_list;
-    }
-
-    const page_count = await univBoardService.countPage(univ_id);
+    const page_count = await univBoardService.countPage(
+      pageSize,
+      category,
+      univ_id
+    );
 
     const fixed_post = await univBoardService.getLikesFromPosts(
       user_id,
       await univBoardService.findFixedPost()
     );
 
-    for (i = 0; i < fixed_post.length; i++) {
-      img_list = fixed_post[i]["img_list"];
-      if (img_list != null) {
-        img_list = img_list.split(",");
-      } else {
-        img_list = [];
-      }
-      fixed_post[i].img_list = img_list;
-    }
-
     res.status(200).send({
       fixed_post,
       result,
-      page_count: Math.ceil(page_count[0]["post_count"] / pageSize),
+      page_count,
       ok: true,
     });
   } catch (err) {
@@ -143,22 +124,11 @@ const searchUnivPost = async (req, res, next) => {
         category,
         univ_id,
         keyword,
-        "search"
+        true
       ),
       sort,
       keyword
     );
-
-    let img_list;
-    for (i = 0; i < result.length; i++) {
-      img_list = result[i]["img_list"];
-      if (img_list != null) {
-        img_list = img_list.split(",");
-      } else {
-        img_list = [];
-      }
-      result[i].img_list = img_list;
-    }
 
     res.status(200).send({
       result,
@@ -206,13 +176,13 @@ const getOnePost = async (req, res, next) => {
     } else {
       let is_like = false;
 
-      my_like = await univBoardService.findOneLike(user_id, post_id);
+      my_like = await univBoardService.findLike(user_id, post_id);
 
       if (my_like) {
         is_like = true;
       }
 
-      all_like = await univBoardService.findAllLike(post_id);
+      all_like = await univBoardService.findLike(post_id);
 
       if (result.img_list != null) {
         result.img_list = img_list = result["img_list"].split(",");
@@ -252,7 +222,7 @@ const putPost = async (req, res, next) => {
       return res.status(401).send({ ok: false, message: "작성자가 아닙니다" });
     }
 
-    await univBoardService.updatePost(
+    const newPost = await univBoardService.updatePost(
       {
         univ_id,
         title,
@@ -264,12 +234,10 @@ const putPost = async (req, res, next) => {
       post_id
     );
 
-    const newResult = await univBoardService.findOnePost(post_id);
-
     newResult.img_list = img_list;
 
     res.status(200).send({
-      result: newResult,
+      result: newPost,
       ok: true,
     });
   } catch (err) {
@@ -320,16 +288,16 @@ const likePost = async (req, res, next) => {
   try {
     const { user_id } = res.locals.user;
     const { post_id } = req.params;
-    const my_like = await univBoardService.findOneLike(user_id, post_id);
+    const my_like = await univBoardService.findLike(post_id, user_id);
 
     if (my_like == null) {
-      await univBoardService.createUnivLike(post_id, user_id);
+      await univBoardService.checkLike(my_like, post_id, user_id);
       res.status(200).send({
         message: "liked post",
         ok: true,
       });
     } else {
-      await univBoardService.deleteUnivLike(post_id, user_id);
+      await univBoardService.checkLike(my_like, post_id, user_id);
       res.status(200).send({
         message: "disliked post",
         ok: true,
@@ -429,9 +397,10 @@ const putComment = async (req, res, next) => {
       return res.status(401).send({ ok: false, message: "작성자가 아닙니다" });
     }
 
-    await univBoardService.updateComment(comment_id, content);
-
-    const newComment = await univBoardService.findOneComent(comment_id);
+    const newComment = await univBoardService.updateComment(
+      comment_id,
+      content
+    );
 
     res.status(200).send({
       result: newComment,

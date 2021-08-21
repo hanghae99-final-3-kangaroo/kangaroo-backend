@@ -9,13 +9,17 @@ const Sequelize = require("sequelize");
 const { or, like } = Sequelize.Op;
 
 const createPost = async (post) => {
-  return await free_board.create(post);
+  if (post["img_list"] == "") img_list = [];
+  const result = await free_board.create(post);
 };
 
 const updatePost = async (post, post_id) => {
-  return await free_board.update(post, {
+  await free_board.update(post, {
     where: { post_id },
   });
+  const newPost = await free_board.findOne({ where: { post_id } });
+
+  return newPost;
 };
 
 const deletePost = async (post_id) => {
@@ -62,7 +66,7 @@ const findAllPost = async (
     where: {},
     attributes: {
       include: [
-        [Sequelize.fn("COUNT", Sequelize.col("comment_id")), "coment_count"],
+        [Sequelize.fn("COUNT", Sequelize.col("comment_id")), "comment_count"],
       ],
     },
     include: [
@@ -84,18 +88,33 @@ const findAllPost = async (
     ],
   };
 
-  if (search == "search") options.where = searchWhereOption;
-  return await free_board.findAll(options);
+  if (search == true) options.where = searchWhereOption;
+
+  const posts = await free_board.findAndCountAll(options);
+  posts["count"] = posts["count"].length;
+
+  let img_list;
+  for (i = 0; i < posts["rows"].length; i++) {
+    img_list = posts["rows"][i]["img_list"];
+    if (img_list != null) {
+      img_list = img_list.split(",");
+    } else {
+      img_list = [];
+    }
+    posts["rows"][i].img_list = img_list;
+  }
+
+  return posts;
 };
 
 const getLikesFromPosts = async (user_id, posts, sort, keyword) => {
-  for (let i = 0; i < posts.length; i++) {
+  for (let i = 0; i < posts["rows"].length; i++) {
     let is_like = false;
     if (user_id != null) {
       my_like = await free_like.findOne({
         where: {
           user_id,
-          post_id: posts[i].post_id,
+          post_id: posts["rows"][i].post_id,
         },
       });
       if (my_like) {
@@ -103,54 +122,46 @@ const getLikesFromPosts = async (user_id, posts, sort, keyword) => {
       }
     }
     all_like = await free_like.findAll({
-      where: { post_id: posts[i].post_id },
+      where: { post_id: posts["rows"][i].post_id },
     });
-    posts[i].like = {
+    posts["rows"][i].like = {
       is_like,
       all_like: all_like.length,
     };
   }
 
   if (sort == "relative") {
-    for (let i = 0; i < posts.length; i++) {
+    for (let i = 0; i < posts["rows"].length; i++) {
       let rel = 0;
-      rel += posts[i]["title"].split(keyword).length - 1;
-      rel += posts[i]["content"].split(keyword).length - 1;
-      posts[i]["rel"] = rel;
+      rel += posts["rows"][i]["title"].split(keyword).length - 1;
+      rel += posts["rows"][i]["content"].split(keyword).length - 1;
+      posts["rows"][i]["rel"] = rel;
     }
-    posts.sort((a, b) => b.rel - a.rel); // rel의 값 순으로 내림차순 정렬.sort((a, b) => b.rel - a.rel); // rel의 값 순으로 내림차순 정렬
+    posts["rows"].sort((a, b) => b.rel - a.rel); // rel의 값 순으로 내림차순 정렬.sort((a, b) => b.rel - a.rel); // rel의 값 순으로 내림차순 정렬
   }
 
   return posts;
 };
 
-const createFreeLike = async (post_id, user_id) => {
-  return await free_like.create({
-    post_id,
-    user_id,
-  });
+const checkLike = async (my_like, post_id, user_id) => {
+  if (my_like == null) {
+    return await free_like.create({ post_id, user_id });
+  } else {
+    return await free_like.destroy({ where: { post_id, user_id } });
+  }
 };
 
-const deleteFreeLike = async (post_id, user_id) => {
-  return await free_like.destroy({
-    where: {
-      post_id,
-      user_id,
-    },
-  });
-};
-
-const findOneLike = async (post_id, user_id) => {
-  return await free_like.findOne({
-    where: {
-      user_id,
-      post_id,
-    },
-  });
-};
-
-const findAllLike = async (post_id) => {
-  return await free_like.findAll({ where: { post_id } });
+const findLike = async (post_id, user_id) => {
+  if (user_id == undefined) {
+    return await free_like.findAll({ where: { post_id } });
+  } else {
+    return await free_like.findOne({
+      where: {
+        user_id,
+        post_id,
+      },
+    });
+  }
 };
 
 const createComment = async (user_id, post_id, content) => {
@@ -162,7 +173,10 @@ const createComment = async (user_id, post_id, content) => {
 };
 
 const updateComment = async (comment_id, content) => {
-  return await free_comment.update({ content }, { where: { comment_id } });
+  await free_comment.update({ content }, { where: { comment_id } });
+  const newComment = await free_comment.findOne({ where: { comment_id } });
+
+  return newComment;
 };
 
 const destroyComment = async (comment_id) => {
@@ -194,15 +208,20 @@ const findOneComment = async (comment_id) => {
   });
 };
 
-const countPage = async () => {
-  return await free_board.findAll({
-    attributes: {
-      include: [
-        [Sequelize.fn("COUNT", Sequelize.col("post_id")), "post_count"],
-      ],
-    },
+const countPage = async (pageSize, category) => {
+  const options = {
+    subQuery: false,
     raw: true,
-  });
+    where: {},
+  };
+
+  if (category != undefined) options.where.category = category;
+
+  let page_count = await free_board.findAndCountAll(options);
+
+  page_count = Math.ceil(page_count.count / pageSize);
+
+  return page_count;
 };
 
 const countViewPost = async (post_id) => {
@@ -216,12 +235,10 @@ module.exports = {
   getLikesFromPosts,
   countPage,
   countViewPost,
-  findOneLike,
-  findAllLike,
+  findLike,
   updatePost,
   deletePost,
-  createFreeLike,
-  deleteFreeLike,
+  checkLike,
   createComment,
   findAllComment,
   findOneComment,

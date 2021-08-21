@@ -9,7 +9,7 @@ const makePost = async (req, res, next) => {
 
     if (img_list == undefined) img_list = [];
 
-    const target = await freeBoardService.createPost({
+    const result = await freeBoardService.createPost({
       user_id,
       title,
       category,
@@ -18,9 +18,7 @@ const makePost = async (req, res, next) => {
       img_list: img_list.toString(),
     });
 
-    const target_post_id = target.post_id;
-    const result = await freeBoardService.findOnePost(target_post_id);
-    result.img_list = img_list;
+    // result.img_list = img_list;
 
     res.status(200).send({
       result,
@@ -37,7 +35,7 @@ const makePost = async (req, res, next) => {
 
 const getPost = async (req, res, next) => {
   try {
-    const user_id = res.locals.user;
+    const user_id = res.locals.user.user_id;
     const { pageSize, pageNum, category, country_id } = req.query;
     if (!pageSize || !pageNum) {
       res.status(403).send({
@@ -57,22 +55,11 @@ const getPost = async (req, res, next) => {
       await freeBoardService.findAllPost(pageSize, offset, category, country_id)
     );
 
-    let img_list;
-    for (i = 0; i < result.length; i++) {
-      img_list = result[i]["img_list"];
-      if (img_list != null) {
-        img_list = img_list.split(",");
-      } else {
-        img_list = [];
-      }
-      result[i].img_list = img_list;
-    }
-
-    const page_count = await freeBoardService.countPage();
+    const page_count = await freeBoardService.countPage(pageSize, category);
 
     res.status(200).send({
       result,
-      page_count: Math.ceil(page_count[0]["post_count"] / pageSize),
+      page_count,
       ok: true,
     });
   } catch (err) {
@@ -87,6 +74,7 @@ const getPost = async (req, res, next) => {
 const searchFreePost = async (req, res, next) => {
   try {
     const { pageSize, pageNum, category, country_id, sort } = req.query;
+
     if (!pageSize || !pageNum) {
       res.status(403).send({
         message: "pageSize, pageNum을 입력하세요.",
@@ -94,8 +82,10 @@ const searchFreePost = async (req, res, next) => {
       });
       return;
     }
+
     let { keyword } = req.query;
-    const { user_id } = res.locals.user;
+    let user_id;
+    if (res.locals.user != null) user_id = res.locals.user.user_id;
 
     keyword = keyword.trim(); //trim으로 앞뒤 공백 제거
     if (!keyword.length) {
@@ -117,22 +107,11 @@ const searchFreePost = async (req, res, next) => {
         category,
         country_id,
         keyword,
-        "search"
+        true
       ),
       sort,
       keyword
     );
-
-    let img_list;
-    for (i = 0; i < result.length; i++) {
-      img_list = result[i]["img_list"];
-      if (img_list != null) {
-        img_list = img_list.split(",");
-      } else {
-        img_list = [];
-      }
-      result[i].img_list = img_list;
-    }
 
     res.status(200).send({
       result,
@@ -182,13 +161,13 @@ const getOnePost = async (req, res, next) => {
       let is_like = false;
 
       if (is_user != null) {
-        my_like = await freeBoardService.findOneLike(is_user.user_id, post_id);
+        my_like = await freeBoardService.findLike(post_id, is_user.user_id);
         if (my_like) {
           is_like = true;
         }
       }
 
-      all_like = await freeBoardService.findAllLike(post_id);
+      all_like = await freeBoardService.findLike(post_id);
 
       if (result.img_list != null) {
         result.img_list = img_list = result["img_list"].split(",");
@@ -228,7 +207,7 @@ const putPost = async (req, res, next) => {
       return res.status(401).send({ ok: false, message: "작성자가 아닙니다" });
     }
 
-    await freeBoardService.updatePost(
+    const newPost = await freeBoardService.updatePost(
       {
         title,
         category,
@@ -239,12 +218,10 @@ const putPost = async (req, res, next) => {
       post_id
     );
 
-    const newResult = await freeBoardService.findOnePost(post_id);
-
     newResult.img_list = img_list;
 
     res.status(200).send({
-      result: newResult,
+      result: newPost,
       ok: true,
     });
   } catch (err) {
@@ -295,16 +272,16 @@ const likePost = async (req, res, next) => {
   try {
     const { user_id } = res.locals.user;
     const { post_id } = req.params;
-    const my_like = await freeBoardService.findOneLike(post_id, user_id);
+    const my_like = await freeBoardService.findLike(post_id, user_id);
 
     if (my_like == null) {
-      await freeBoardService.createFreeLike(post_id, user_id);
+      await freeBoardService.checkLike(my_like, post_id, user_id);
       res.status(200).send({
         message: "liked post",
         ok: true,
       });
     } else {
-      await freeBoardService.deleteFreeLike(post_id, user_id);
+      await freeBoardService.checkLike(my_like, post_id, user_id);
       res.status(200).send({
         message: "disliked post",
         ok: true,
@@ -405,9 +382,10 @@ const putComment = async (req, res, next) => {
       return res.status(401).send({ ok: false, message: "작성자가 아닙니다" });
     }
 
-    await freeBoardService.updateComment(comment_id, content);
-
-    const newComment = await freeBoardService.findOneComment(comment_id);
+    const newComment = await freeBoardService.updateComment(
+      comment_id,
+      content
+    );
 
     res.status(200).send({
       result: newComment,
@@ -430,7 +408,7 @@ const deleteComment = async (req, res, next) => {
     const { comment_id } = req.params;
 
     const check_comment_id = await freeBoardService.findOneComment(comment_id);
-
+    //?????ㄷㅜ번하네 고쳐오셈
     if (check_comment_id == null) {
       res.status(403).send({
         ok: false,

@@ -7,9 +7,12 @@ const createPost = async (post) => {
 };
 
 const updatePost = async (post, post_id) => {
-  return await univ_board.update(post, {
+  await univ_board.update(post, {
     where: { post_id },
   });
+  const newPost = await univ_board.findOne({ where: { post_id } });
+
+  return newPost;
 };
 
 const deletePost = async (post_id) => {
@@ -73,67 +76,80 @@ const findAllPost = async (
     ],
   };
 
-  if (search == "search") options.where = searchWhereOption;
+  if (search == true) options.where = searchWhereOption;
 
-  return await univ_board.findAll(options);
+  const posts = await univ_board.findAndCountAll(options);
+  posts["count"] = posts["count"].length;
+
+  let img_list;
+  for (i = 0; i < posts["rows"].length; i++) {
+    img_list = posts["rows"][i]["img_list"];
+    if (img_list != null) {
+      img_list = img_list.split(",");
+    } else {
+      img_list = [];
+    }
+    posts["rows"][i].img_list = img_list;
+  }
+
+  return posts;
 };
 
 const getLikesFromPosts = async (user_id, posts, sort, keyword) => {
-  for (let i = 0; i < posts.length; i++) {
+  for (let i = 0; i < posts["rows"].length; i++) {
     let is_like = false;
-    my_like = await univ_like.findOne({
-      where: {
-        user_id,
-        post_id: posts[i].post_id,
-      },
-    });
-    if (my_like) {
-      is_like = true;
+    if (user_id != null) {
+      my_like = await univ_like.findOne({
+        where: {
+          user_id,
+          post_id: posts["rows"][i].post_id,
+        },
+      });
+      if (my_like) {
+        is_like = true;
+      }
     }
     all_like = await univ_like.findAll({
-      where: { post_id: posts[i].post_id },
+      where: { post_id: posts["rows"][i].post_id },
     });
-    posts[i].like = {
+    posts["rows"][i].like = {
       is_like,
       all_like: all_like.length,
     };
   }
 
   if (sort == "relative") {
-    for (let i = 0; i < posts.length; i++) {
+    for (let i = 0; i < posts["rows"].length; i++) {
       let rel = 0;
-      rel += posts[i]["title"].split(keyword).length - 1;
-      rel += posts[i]["content"].split(keyword).length - 1;
-      posts[i]["rel"] = rel;
+      rel += posts["rows"][i]["title"].split(keyword).length - 1;
+      rel += posts["rows"][i]["content"].split(keyword).length - 1;
+      posts["rows"][i]["rel"] = rel;
     }
-    posts.sort((a, b) => b.rel - a.rel); // rel의 값 순으로 내림차순 정렬.sort((a, b) => b.rel - a.rel); // rel의 값 순으로 내림차순 정렬
+    posts["rows"].sort((a, b) => b.rel - a.rel); // rel의 값 순으로 내림차순 정렬.sort((a, b) => b.rel - a.rel); // rel의 값 순으로 내림차순 정렬
   }
 
   return posts;
 };
 
-const createUnivLike = async (post_id, user_id) => {
-  return await univ_like.create({
-    post_id,
-    user_id,
-  });
+const checkLike = async (my_like, post_id, user_id) => {
+  if (my_like == null) {
+    return await univ_like.create({ post_id, user_id });
+  } else {
+    return await univ_like.destroy({ where: { post_id, user_id } });
+  }
 };
 
-const deleteUnivLike = async (post_id, user_id) => {
-  return await univ_like.destroy({ where: { post_id, user_id } });
-};
-
-const findOneLike = async (user_id, post_id) => {
-  return await univ_like.findOne({
-    where: {
-      user_id,
-      post_id,
-    },
-  });
-};
-
-const findAllLike = async (post_id) => {
-  return await univ_like.findAll({ where: { post_id } });
+const findLike = async (post_id, user_id) => {
+  if (user_id == undefined) {
+    return await univ_like.findAll({ where: { post_id } });
+  } else {
+    return await univ_like.findOne({
+      where: {
+        user_id,
+        post_id,
+      },
+    });
+  }
 };
 
 const createComment = async (user_id, post_id, content) => {
@@ -141,12 +157,15 @@ const createComment = async (user_id, post_id, content) => {
 };
 
 const updateComment = async (comment_id, content) => {
-  return await univ_comment.update(
+  await univ_comment.update(
     { content },
     {
       where: { comment_id },
     }
   );
+  const newComment = await univ_comment.findOne({ where: { comment_id } });
+
+  return newComment;
 };
 
 const destroyComment = async (comment_id) => {
@@ -176,16 +195,20 @@ const findOneComent = async (comment_id) => {
   });
 };
 
-const countPage = async (univ_id) => {
-  return await univ_board.findAll({
-    where: { univ_id },
-    attributes: {
-      include: [
-        [Sequelize.fn("COUNT", Sequelize.col("post_id")), "post_count"],
-      ],
-    },
+const countPage = async (pageSize, category, univ_id) => {
+  const options = {
+    subQuery: false,
     raw: true,
-  });
+    where: { univ_id },
+  };
+
+  if (category != undefined) options.where.category = category;
+
+  let page_count = await univ_board.findAndCountAll(options);
+
+  page_count = Math.ceil(page_count.count / pageSize);
+
+  return page_count;
 };
 
 const countViewPost = async (post_id) => {
@@ -193,7 +216,7 @@ const countViewPost = async (post_id) => {
 };
 
 const findFixedPost = async () => {
-  return await univ_board.findAll({
+  const posts = await univ_board.findAndCountAll({
     subQuery: false,
     raw: true,
     where: { is_fixed: true },
@@ -210,6 +233,20 @@ const findFixedPost = async () => {
     ],
     group: ["post_id"],
   });
+  posts["count"] = posts["count"].length;
+
+  let img_list;
+  for (i = 0; i < posts["rows"].length; i++) {
+    img_list = posts["rows"][i]["img_list"];
+    if (img_list != null) {
+      img_list = img_list.split(",");
+    } else {
+      img_list = [];
+    }
+    posts["rows"][i].img_list = img_list;
+  }
+
+  return posts;
 };
 
 module.exports = {
@@ -220,12 +257,10 @@ module.exports = {
   countPage,
   findFixedPost,
   countViewPost,
-  findOneLike,
-  findAllLike,
+  findLike,
   updatePost,
   deletePost,
-  createUnivLike,
-  deleteUnivLike,
+  checkLike,
   createComment,
   findAllComment,
   findOneComent,
