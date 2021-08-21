@@ -18,19 +18,20 @@ const calculateIssue = async () => {
   while (result.length < 4) {
     result = await sequelize.query(
       `select free_board.post_id,
-          free_board.view_count
-          + count(distinct free_comment.user_id) * 10
-          + count(distinct free_like.user_id) * 20
-          as sum from free_board 
-          left join free_comment
-          on free_board.post_id = free_comment.post_id
-          left join free_like
-          on free_board.post_id = free_like.post_id
-          WHERE free_board.createdAt BETWEEN '${startDate
-            .toISOString()
-            .slice(0, 19)
-            .replace("T", " ")}' AND NOW()
-          group by free_board.post_id;`,
+      free_board.user_id,
+      free_board.view_count
+      + count(distinct free_comment.user_id) * 10
+      + count(distinct free_like.user_id) * 20
+      as sum from free_board 
+      left join free_comment
+      on free_board.post_id = free_comment.post_id
+      left join free_like
+      on free_board.post_id = free_like.post_id
+      WHERE free_board.createdAt BETWEEN '${startDate
+        .toISOString()
+        .slice(0, 19)
+        .replace("T", " ")}' AND NOW()
+      group by free_board.post_id;`,
       { type: Sequelize.QueryTypes.SELECT }
     );
     startDate.setHours(startDate.getHours() - 1);

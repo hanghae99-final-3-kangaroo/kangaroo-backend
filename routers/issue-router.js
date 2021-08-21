@@ -4,7 +4,7 @@ const { issueController } = require("../controllers");
 
 const schedule = require("node-schedule");
 
-schedule.scheduleJob("31 8 * * * *", async function () {
+schedule.scheduleJob("31 * * * * *", async function () {
   console.log(new Date().toJSON() + " 마다 갱신");
   await issueController.createIssue();
 });

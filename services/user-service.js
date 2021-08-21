@@ -9,8 +9,10 @@ const {
   univ_board,
   univ_comment,
   univ_like,
+  issue,
 } = require("../models");
 const Sequelize = require("sequelize");
+const { issueService } = require(".");
 
 const findUser = async (field) => {
   return await user.findOne({
@@ -101,6 +103,9 @@ const getLikesFromPosts = async (model, user_id, posts) => {
 };
 
 const delUser = async (user_id) => {
+  await issue.destroy({
+    where: { user_id },
+  });
   await free_board.destroy({
     where: { user_id },
   });

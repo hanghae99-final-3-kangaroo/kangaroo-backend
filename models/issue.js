@@ -5,6 +5,7 @@ module.exports = (sequelize, DataTypes) => {
   class issue extends Model {
     static associate(models) {
       issue.belongsTo(models.free_board, { foreignKey: "post_id" });
+      issue.belongsTo(models.free_board, { foreignKey: "user_id" });
     }
   }
   issue.init(
@@ -16,6 +17,10 @@ module.exports = (sequelize, DataTypes) => {
         type: Sequelize.INTEGER,
       },
       post_id: {
+        allowNull: false,
+        type: Sequelize.INTEGER,
+      },
+      user_id: {
         allowNull: false,
         type: Sequelize.INTEGER,
       },
