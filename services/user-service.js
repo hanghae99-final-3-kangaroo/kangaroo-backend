@@ -56,6 +56,7 @@ const findPosts = async (
   options.where = additionalOptions;
   if (ifComment) {
     options.include[0].where = additionalOptions;
+    options.include[0].attributes = ["content"];
   }
   if (model == "free") {
     return await free_board.findAll(options);
