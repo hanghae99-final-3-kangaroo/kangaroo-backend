@@ -8,7 +8,7 @@ module.exports = () => {
     new KakaoStrategy(
       {
         clientID: process.env.KAKAO_PASSPORT_KEY,
-        callbackURL: "localhost:3000/auth/kakao/callback", // 위에서 설정한 Redirect URI
+        callbackURL: "http://localhost:3000/auth/kakao/callback", // 위에서 설정한 Redirect URI
       },
       async (accessToken, refreshToken, profile, done) => {
         const email = profile["_json"].kakao_account.email;
