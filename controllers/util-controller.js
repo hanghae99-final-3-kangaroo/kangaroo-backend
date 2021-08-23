@@ -39,7 +39,7 @@ const searchPost = async (req, res, next) => {
         category,
         country_id,
         keyword,
-        "search"
+        true
       ),
       sort,
       keyword
@@ -54,7 +54,7 @@ const searchPost = async (req, res, next) => {
           category,
           user.univ_id,
           keyword,
-          "search"
+          true
         ),
         sort,
         keyword
