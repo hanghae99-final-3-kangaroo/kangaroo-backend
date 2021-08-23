@@ -50,8 +50,6 @@ const getPost = async (req, res, next) => {
       await freeBoardService.findAllPost(pageSize, offset, category, country_id)
     );
 
-    const page_count = await freeBoardService.countPage(pageSize, category);
-
     res.status(200).send({
       result,
       page_count,
@@ -260,19 +258,12 @@ const likePost = async (req, res, next) => {
 
     const my_like = await freeBoardService.findLike(post_id, user_id);
 
-    await freeBoardService.checkLike(my_like, post_id, user_id);
+    const message = await freeBoardService.checkLike(my_like, post_id, user_id);
 
-    if (my_like == null) {
-      res.status(200).send({
-        message: "liked post",
-        ok: true,
-      });
-    } else {
-      res.status(200).send({
-        message: "disliked post",
-        ok: true,
-      });
-    }
+    res.status(200).send({
+      message,
+      ok: true,
+    });
   } catch (err) {
     console.error(err);
     res.status(400).send({

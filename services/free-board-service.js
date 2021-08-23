@@ -131,6 +131,8 @@ const findAllPost = async (
     posts["rows"][i].img_list = img_list;
   }
 
+  posts.countPage = Math.ceil(posts["count"] / pageSize);
+
   return posts;
 };
 
@@ -172,9 +174,11 @@ const getLikesFromPosts = async (user_id, posts, sort, keyword) => {
 
 const checkLike = async (my_like, post_id, user_id) => {
   if (my_like == null) {
-    return await free_like.create({ post_id, user_id });
+    await free_like.create({ post_id, user_id });
+    return "liked post";
   } else {
-    return await free_like.destroy({ where: { post_id, user_id } });
+    await free_like.destroy({ where: { post_id, user_id } });
+    return "disliked post";
   }
 };
 
@@ -235,22 +239,6 @@ const findOneComment = async (comment_id) => {
   });
 };
 
-const countPage = async (pageSize, category) => {
-  const options = {
-    subQuery: false,
-    raw: true,
-    where: {},
-  };
-
-  if (category != undefined) options.where.category = category;
-
-  let page_count = await free_board.findAndCountAll(options);
-
-  page_count = Math.ceil(page_count.count / pageSize);
-
-  return page_count;
-};
-
 const countViewPost = async (post_id) => {
   return await free_board.increment({ view_count: +1 }, { where: { post_id } });
 };
@@ -260,7 +248,6 @@ module.exports = {
   findOnePost,
   findAllPost,
   getLikesFromPosts,
-  countPage,
   countViewPost,
   findLike,
   updatePost,

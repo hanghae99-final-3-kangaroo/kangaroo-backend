@@ -60,12 +60,6 @@ const getPost = async (req, res, next) => {
       await univBoardService.findAllPost(pageSize, offset, category, univ_id)
     );
 
-    const page_count = await univBoardService.countPage(
-      pageSize,
-      category,
-      univ_id
-    );
-
     const fixed_post = await univBoardService.getLikesFromPosts(
       user_id,
       await univBoardService.findFixedPost()
@@ -74,7 +68,6 @@ const getPost = async (req, res, next) => {
     res.status(200).send({
       fixed_post,
       result,
-      page_count,
       ok: true,
     });
   } catch (err) {
@@ -367,7 +360,7 @@ const putComment = async (req, res, next) => {
     const { comment_id } = req.params;
     const { content } = req.body;
 
-    const result = await univBoardService.findOneComent(comment_id);
+    const result = await univBoardService.findOneComment(comment_id);
 
     if (result == null) {
       res.status(403).send({
@@ -404,7 +397,7 @@ const deleteComment = async (req, res, next) => {
     const { user_id } = res.locals.user;
     const { comment_id } = req.params;
 
-    const result = await univBoardService.findOneComent(comment_id);
+    const result = await univBoardService.findOneComment(comment_id);
 
     if (result == null) {
       res.status(403).send({

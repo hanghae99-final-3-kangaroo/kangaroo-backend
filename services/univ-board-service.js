@@ -84,7 +84,7 @@ const findAllPost = async (
     where: {},
     attributes: {
       include: [
-        [Sequelize.fn("COUNT", Sequelize.col("comment_id")), "coment_count"],
+        [Sequelize.fn("COUNT", Sequelize.col("comment_id")), "comment_count"],
       ],
     },
     include: [
@@ -120,6 +120,8 @@ const findAllPost = async (
     }
     posts["rows"][i].img_list = img_list;
   }
+
+  posts.countPage = Math.ceil(posts["count"] / pageSize);
 
   return posts;
 };
@@ -218,26 +220,10 @@ const findAllComment = async (post_id) => {
   });
 };
 
-const findOneComent = async (comment_id) => {
+const findOneComment = async (comment_id) => {
   return await univ_comment.findOne({
     where: { comment_id },
   });
-};
-
-const countPage = async (pageSize, category, univ_id) => {
-  const options = {
-    subQuery: false,
-    raw: true,
-    where: { univ_id },
-  };
-
-  if (category != undefined) options.where.category = category;
-
-  let page_count = await univ_board.findAndCountAll(options);
-
-  page_count = Math.ceil(page_count.count / pageSize);
-
-  return page_count;
 };
 
 const countViewPost = async (post_id) => {
@@ -251,7 +237,7 @@ const findFixedPost = async () => {
     where: { is_fixed: true },
     attributes: {
       include: [
-        [Sequelize.fn("COUNT", Sequelize.col("comment_id")), "coment_count"],
+        [Sequelize.fn("COUNT", Sequelize.col("comment_id")), "comment_count"],
       ],
     },
     include: [
@@ -283,7 +269,6 @@ module.exports = {
   findOnePost,
   findAllPost,
   getLikesFromPosts,
-  countPage,
   findFixedPost,
   countViewPost,
   findLike,
@@ -292,7 +277,7 @@ module.exports = {
   checkLike,
   createComment,
   findAllComment,
-  findOneComent,
+  findOneComment,
   updateComment,
   destroyComment,
 };
