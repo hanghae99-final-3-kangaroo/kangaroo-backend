@@ -164,9 +164,11 @@ const getLikesFromPosts = async (user_id, posts, sort, keyword) => {
 
 const checkLike = async (my_like, post_id, user_id) => {
   if (my_like == null) {
-    return await univ_like.create({ post_id, user_id });
+    await univ_like.create({ post_id, user_id });
+    return "liked post";
   } else {
-    return await univ_like.destroy({ where: { post_id, user_id } });
+    await univ_like.destroy({ where: { post_id, user_id } });
+    return "disliked post";
   }
 };
 

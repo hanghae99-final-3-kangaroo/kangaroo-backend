@@ -271,19 +271,12 @@ const likePost = async (req, res, next) => {
 
     const my_like = await univBoardService.findLike(post_id, user_id);
 
-    await univBoardService.checkLike(my_like, post_id, user_id);
+    const message = await univBoardService.checkLike(my_like, post_id, user_id);
 
-    if (my_like == null) {
-      res.status(200).send({
-        message: "liked post",
-        ok: true,
-      });
-    } else {
-      res.status(200).send({
-        message: "disliked post",
-        ok: true,
-      });
-    }
+    res.status(200).send({
+      message,
+      ok: true,
+    });
   } catch (err) {
     console.error(err);
     res.status(400).send({
