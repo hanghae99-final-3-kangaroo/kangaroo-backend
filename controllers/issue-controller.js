@@ -9,21 +9,21 @@ const createIssue = async () => {
 const getIssue = async (req, res, next) => {
   try {
     // 생성된 인기 게시글 조회
-    let issue_post_result = await issueService.findIssue();
+    let issue = await issueService.findIssue();
 
     let img_list;
-    for (i = 0; i < issue_post_result.length; i++) {
-      img_list = issue_post_result[i]["free_board"]["img_list"];
+    for (i = 0; i < issue.length; i++) {
+      img_list = issue[i]["free_board"]["img_list"];
       if (img_list != null) {
         img_list = img_list.split(",");
       } else {
         img_list = [];
       }
-      issue_post_result[i]["free_board"].img_list = img_list;
+      issue[i]["free_board"].img_list = img_list;
     }
 
     res.status(200).send({
-      result: issue_post_result,
+      result: issue,
       ok: true,
     });
   } catch (err) {

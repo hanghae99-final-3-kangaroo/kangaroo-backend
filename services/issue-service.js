@@ -51,7 +51,7 @@ const findIssue = async () => {
     order: [["sum", "DESC"]],
     include: [{ model: free_board }],
     attributes: {
-      exclude: ["issue_id", "createdAt", "updatedAt", "sum"],
+      exclude: ["issue_id", "createdAt", "updatedAt"],
     },
   });
 };
