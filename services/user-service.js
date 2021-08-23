@@ -138,20 +138,20 @@ const updateTarget = async (target, field) => {
 };
 
 const concatenateArray = (free, univ) => {
-  const ret = [];
-  if (free != null) {
+  let ret = [];
+  if (free) {
     free = free["rows"];
     free.forEach(function (e) {
       e.board = "free";
     });
-    ret.concat(free);
+    ret = ret.concat(free);
   }
-  if (univ != null) {
+  if (univ) {
     univ = univ["rows"];
     univ.forEach(function (e) {
       e.board = "univ";
     });
-    ret.concat(univ);
+    ret = ret.concat(univ);
   }
   return ret;
 };
