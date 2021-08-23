@@ -1,4 +1,5 @@
 const { university, election, candidate, country, vote } = require("../models");
+const Sequelize = require("sequelize");
 
 const findUniv = async (univ_id) => {
   return await university.findOne({
