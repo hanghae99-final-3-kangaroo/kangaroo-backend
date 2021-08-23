@@ -139,6 +139,8 @@ const updateTarget = async (target, field) => {
 
 const concatenateArray = (free, univ) => {
   const ret = [];
+  free = free["rows"];
+  univ = univ["rows"];
   if (free != null) {
     free.forEach(function (e) {
       e.board = "free";
