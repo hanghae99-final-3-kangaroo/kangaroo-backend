@@ -139,15 +139,15 @@ const updateTarget = async (target, field) => {
 
 const concatenateArray = (free, univ) => {
   const ret = [];
-  free = free["rows"];
-  univ = univ["rows"];
   if (free != null) {
+    free = free["rows"];
     free.forEach(function (e) {
       e.board = "free";
     });
     ret.concat(free);
   }
   if (univ != null) {
+    univ = univ["rows"];
     univ.forEach(function (e) {
       e.board = "univ";
     });
