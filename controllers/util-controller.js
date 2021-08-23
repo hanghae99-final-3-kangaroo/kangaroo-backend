@@ -45,13 +45,14 @@ const searchPost = async (req, res, next) => {
       keyword
     );
     if (user_id !== undefined) {
+      const user = await userService.findUser({ user_id });
       univSearch = await univBoardService.getLikesFromPosts(
         user_id,
         await univBoardService.findAllPost(
           pageSize,
           offset,
           category,
-          country_id,
+          user.univ_id,
           keyword,
           "search"
         ),
