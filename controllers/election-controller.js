@@ -2,7 +2,7 @@ const fs = require("fs");
 
 const path = require("path");
 const appDir = path.dirname(require.main.filename);
-const { electionService } = require("../services");
+const { electionService, boardService } = require("../services");
 
 const postElection = async (req, res, next) => {
   const { user_id } = res.locals.user;
@@ -378,6 +378,141 @@ const voteResult = async (req, res) => {
   }
 };
 
+const makeComment = async (req, res, next) => {
+  try {
+    const { user_id } = res.locals.user;
+
+    const { election_id, content } = req.body;
+
+    const electionCheck = await electionService.findElection(election_id);
+
+    if (electionCheck == null) {
+      res.status(403).send({
+        ok: false,
+        message: "존재하지 않는 선거 입니다.",
+      });
+      return;
+    }
+
+    const result = await boardService.createComment(
+      "election",
+      user_id,
+      (post_id = election_id),
+      content
+    );
+
+    res.status(200).send({
+      result,
+      ok: true,
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(400).send({
+      ok: false,
+      message: `${err} : 댓글 작성 실패`,
+    });
+  }
+};
+
+const getComment = async (req, res, next) => {
+  try {
+    const { election_id } = req.params;
+    const result = await boardService.findAllComment("election", election_id);
+
+    if (result.length == 0) {
+      res.status(200).send({
+        result,
+        ok: true,
+        message: "댓글이 없습니다.",
+      });
+      return;
+    }
+
+    res.status(200).send({
+      result,
+      ok: true,
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(400).send({
+      ok: false,
+      message: `${err} : 댓글 조회 실패`,
+    });
+  }
+};
+
+const putComment = async (req, res, next) => {
+  try {
+    const { user_id } = res.locals.user;
+    const { comment_id } = req.params;
+    const { content } = req.body;
+
+    const result = await boardService.findOneComment("election", comment_id);
+
+    if (result == null) {
+      res.status(403).send({
+        ok: false,
+        message: "댓글이 없습니다",
+      });
+      return;
+    }
+
+    if (user_id != result.user_id) {
+      return res.status(401).send({ ok: false, message: "작성자가 아닙니다" });
+    }
+
+    const newComment = await boardService.updateComment(
+      "election",
+      comment_id,
+      content
+    );
+
+    res.status(200).send({
+      result: newComment,
+      ok: true,
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(400).send({
+      ok: false,
+      message: `${err} : 댓글 수정 실패`,
+    });
+  }
+};
+
+const deleteComment = async (req, res, next) => {
+  try {
+    const { user_id } = res.locals.user;
+    const { comment_id } = req.params;
+
+    const result = await boardService.findOneComment("election", comment_id);
+
+    if (result == null) {
+      res.status(403).send({
+        ok: false,
+        message: "댓글이 없습니다",
+      });
+      return;
+    }
+
+    if (user_id != result["user_id"]) {
+      return res.status(401).send({ ok: false, message: "작성자가 아닙니다" });
+    }
+
+    await boardService.destroyComment("election", comment_id);
+
+    res.status(200).send({
+      ok: true,
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(400).send({
+      ok: false,
+      message: `${err} : 게시글 삭제 실패`,
+    });
+  }
+};
+
 module.exports = {
   postElection,
   getElectionList,
@@ -386,4 +521,8 @@ module.exports = {
   delElection,
   doVote,
   voteResult,
+  makeComment,
+  getComment,
+  putComment,
+  deleteComment,
 };

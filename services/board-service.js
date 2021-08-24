@@ -4,6 +4,7 @@ const {
   univ_board,
   free_comment,
   univ_comment,
+  election_comment,
   free_like,
   univ_like,
 } = require("../models");
@@ -248,19 +249,21 @@ const findLike = async (board, post_id, user_id) => {
     });
   }
 };
-
+const getCommentModel = (comment) => {
+  if (comment == "free") return free_comment;
+  if (comment == "univ") return univ_comment;
+  if (comment == "election") return election_comment;
+};
 // 댓글 작성
 const createComment = async (comment, user_id, post_id, content) => {
-  if (comment == "free") comment = free_comment;
-  if (comment == "univ") comment = univ_comment;
+  comment = getCommentModel(comment);
 
   return await comment.create({ user_id, post_id, content });
 };
 
 // 댓글 수정
 const updateComment = async (comment, comment_id, content) => {
-  if (comment == "free") comment = free_comment;
-  if (comment == "univ") comment = univ_comment;
+  comment = getCommentModel(comment);
 
   await comment.update(
     { content },
@@ -275,8 +278,7 @@ const updateComment = async (comment, comment_id, content) => {
 
 // 댓글 삭제
 const destroyComment = async (comment, comment_id) => {
-  if (comment == "free") comment = free_comment;
-  if (comment == "univ") comment = univ_comment;
+  comment = getCommentModel(comment);
 
   return await comment.destroy({
     where: {
@@ -287,8 +289,7 @@ const destroyComment = async (comment, comment_id) => {
 
 // 댓글 전체 조회
 const findAllComment = async (comment, post_id) => {
-  if (comment == "free") comment = free_comment;
-  if (comment == "univ") comment = univ_comment;
+  comment = getCommentModel(comment);
 
   return await comment.findAll({
     where: {
@@ -297,6 +298,7 @@ const findAllComment = async (comment, post_id) => {
     include: [
       {
         model: user,
+        attributes: ["user_id", "nickname"],
       },
     ],
   });
@@ -304,8 +306,7 @@ const findAllComment = async (comment, post_id) => {
 
 // 댓글 단일 조회
 const findOneComment = async (comment, comment_id) => {
-  if (comment == "free") comment = free_comment;
-  if (comment == "univ") comment = univ_comment;
+  comment = getCommentModel(comment);
 
   return await comment.findOne({
     where: { comment_id },

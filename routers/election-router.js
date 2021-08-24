@@ -21,4 +21,20 @@ router.get(
   electionController.voteResult
 );
 
+router.post("/comment", authMiddleware, electionController.makeComment);
+
+router.get("/comment/:election_id", electionController.getComment);
+
+router.put(
+  "/comment/:comment_id",
+  authMiddleware,
+  electionController.putComment
+);
+
+router.delete(
+  "/comment/:comment_id",
+  authMiddleware,
+  electionController.deleteComment
+);
+
 module.exports = router;
