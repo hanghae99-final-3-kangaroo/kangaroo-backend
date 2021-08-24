@@ -397,7 +397,7 @@ const makeComment = async (req, res, next) => {
     const result = await boardService.createComment(
       "election",
       user_id,
-      (post_id = election_id),
+      election_id,
       content
     );
 
