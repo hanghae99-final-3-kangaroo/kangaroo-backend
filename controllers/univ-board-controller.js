@@ -1,4 +1,4 @@
-const { univBoardService } = require("../services");
+const { boardService } = require("../services");
 
 const makePost = async (req, res, next) => {
   try {
@@ -6,7 +6,7 @@ const makePost = async (req, res, next) => {
 
     const { univ_id, title, category, content, img_list, is_fixed } = req.body;
 
-    const result = await univBoardService.createPost({
+    const result = await boardService.createPost("univ", {
       user_id,
       univ_id,
       title,
@@ -55,14 +55,29 @@ const getPost = async (req, res, next) => {
       offset = pageSize * (pageNum - 1);
     }
 
-    const result = await univBoardService.getLikesFromPosts(
+    const result = await boardService.getLikesFromPosts(
+      "univ",
       user_id,
-      await univBoardService.findAllPost(pageSize, offset, category, univ_id)
+      await boardService.findAllPost(
+        "univ",
+        pageSize,
+        offset,
+        category,
+        null, // keyword
+        null, // search
+        null, // country_id
+        univ_id
+      ),
+      null, // sort
+      null // keyword
     );
 
-    const fixed_post = await univBoardService.getLikesFromPosts(
+    const fixed_post = await boardService.getLikesFromPosts(
+      "univ",
       user_id,
-      await univBoardService.findFixedPost()
+      await boardService.findFixedPost(),
+      null, // sort
+      null // keyword
     );
 
     res.status(200).send({
@@ -104,15 +119,18 @@ const searchUnivPost = async (req, res, next) => {
       offset = pageSize * (pageNum - 1);
     }
 
-    const result = await univBoardService.getLikesFromPosts(
+    const result = await boardService.getLikesFromPosts(
+      "univ",
       user_id,
-      await univBoardService.findAllPost(
+      await boardService.findAllPost(
+        "univ",
         pageSize,
         offset,
         category,
-        univ_id,
         keyword,
-        true
+        true, // search
+        null, // country_id
+        univ_id
       ),
       sort,
       keyword
@@ -135,7 +153,7 @@ const getCountViewPost = async (req, res, next) => {
   try {
     const { post_id } = req.params;
 
-    await univBoardService.countViewPost(post_id);
+    await boardService.countViewPost("univ", post_id);
 
     res.status(200).send({
       ok: true,
@@ -154,7 +172,7 @@ const getOnePost = async (req, res, next) => {
     const { post_id } = req.params;
     const { user_id } = res.locals.user;
 
-    const result = await univBoardService.findOnePost(post_id);
+    const result = await boardService.findOnePost("univ", post_id);
 
     if (result == null) {
       res.status(403).send({
@@ -166,13 +184,13 @@ const getOnePost = async (req, res, next) => {
       let is_like = false;
 
       if (user_id != null) {
-        my_like = await univBoardService.findLike(post_id, user_id);
+        my_like = await boardService.findLike("univ", post_id, user_id);
         if (my_like) {
           is_like = true;
         }
       }
 
-      all_like = await univBoardService.findLike(post_id);
+      all_like = await boardService.findLike("univ", post_id);
 
       res.status(200).send({
         like: {
@@ -198,13 +216,14 @@ const putPost = async (req, res, next) => {
     const { post_id } = req.params;
     const { univ_id, title, category, content, img_list, is_fixed } = req.body;
 
-    const result = await univBoardService.findOnePost(post_id);
+    const result = await boardService.findOnePost("univ", post_id);
 
     if (user_id !== result.user_id) {
       return res.status(401).send({ ok: false, message: "작성자가 아닙니다" });
     }
 
-    const newPost = await univBoardService.updatePost(
+    const newPost = await boardService.updatePost(
+      "univ",
       {
         univ_id,
         title,
@@ -231,12 +250,11 @@ const putPost = async (req, res, next) => {
 
 const deletePost = async (req, res, next) => {
   try {
-    const { user } = res.locals;
-    const user_id = user.user_id;
+    const { user_id } = res.locals.user;
 
     const { post_id } = req.params;
 
-    const result = await univBoardService.findOnePost(post_id);
+    const result = await boardService.findOnePost("univ", post_id);
 
     if (result == null) {
       res.status(403).send({
@@ -250,7 +268,7 @@ const deletePost = async (req, res, next) => {
       return res.status(401).send({ ok: false, message: "작성자가 아닙니다" });
     }
 
-    await univBoardService.deletePost(post_id);
+    await boardService.deletePost("univ", post_id);
 
     res.status(200).send({
       ok: true,
@@ -269,9 +287,14 @@ const likePost = async (req, res, next) => {
     const { user_id } = res.locals.user;
     const { post_id } = req.params;
 
-    const my_like = await univBoardService.findLike(post_id, user_id);
+    const my_like = await boardService.findLike("univ", post_id, user_id);
 
-    const message = await univBoardService.checkLike(my_like, post_id, user_id);
+    const message = await boardService.checkLike(
+      "univ",
+      my_like,
+      post_id,
+      user_id
+    );
 
     res.status(200).send({
       message,
@@ -291,7 +314,7 @@ const makeComment = async (req, res, next) => {
     const { user_id } = res.locals.user;
     const { post_id, content } = req.body;
 
-    const check_post_id = await univBoardService.findOnePost(post_id);
+    const check_post_id = await boardService.findOnePost("univ", post_id);
 
     if (check_post_id == null) {
       res.status(403).send({
@@ -300,7 +323,8 @@ const makeComment = async (req, res, next) => {
       });
     }
 
-    const result = await univBoardService.createComment(
+    const result = await boardService.createComment(
+      "univ",
       user_id,
       post_id,
       content
@@ -323,7 +347,7 @@ const getComment = async (req, res, next) => {
   try {
     const { post_id } = req.params;
 
-    const result = await univBoardService.findAllComment(post_id);
+    const result = await boardService.findAllComment("univ", post_id);
 
     if (result.length == 0) {
       res.status(200).send({
@@ -353,7 +377,7 @@ const putComment = async (req, res, next) => {
     const { comment_id } = req.params;
     const { content } = req.body;
 
-    const result = await univBoardService.findOneComment(comment_id);
+    const result = await boardService.findOneComment("univ", comment_id);
 
     if (result == null) {
       res.status(403).send({
@@ -367,7 +391,8 @@ const putComment = async (req, res, next) => {
       return res.status(401).send({ ok: false, message: "작성자가 아닙니다" });
     }
 
-    const newComment = await univBoardService.updateComment(
+    const newComment = await boardService.updateComment(
+      "univ",
       comment_id,
       content
     );
@@ -390,7 +415,7 @@ const deleteComment = async (req, res, next) => {
     const { user_id } = res.locals.user;
     const { comment_id } = req.params;
 
-    const result = await univBoardService.findOneComment(comment_id);
+    const result = await boardService.findOneComment("univ", comment_id);
 
     if (result == null) {
       res.status(403).send({
@@ -404,7 +429,7 @@ const deleteComment = async (req, res, next) => {
       return res.status(401).send({ ok: false, message: "작성자가 아닙니다" });
     }
 
-    await univBoardService.destroyComment(comment_id);
+    await boardService.destroyComment("univ", comment_id);
 
     res.status(200).send({
       ok: true,

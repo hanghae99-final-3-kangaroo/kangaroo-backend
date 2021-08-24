@@ -1,12 +1,9 @@
-const {
-  userService,
-  freeBoardService,
-  univBoardService,
-} = require("../services");
+const { userService, boardService } = require("../services");
 
 const searchPost = async (req, res, next) => {
   try {
     const { pageSize, pageNum, category, country_id, sort } = req.query;
+
     let user_id, univSearch;
     if (res.locals.user !== null) {
       user_id = res.locals.user.user_id;
@@ -18,9 +15,10 @@ const searchPost = async (req, res, next) => {
       });
       return;
     }
-    let { keyword } = req.query;
 
+    let { keyword } = req.query;
     keyword = keyword.trim();
+
     if (!keyword.length) {
       return res.status(400).json("invalid target");
     }
@@ -31,30 +29,38 @@ const searchPost = async (req, res, next) => {
       offset = pageSize * (pageNum - 1);
     }
 
-    const freeSearch = await freeBoardService.getLikesFromPosts(
+    const freeSearch = await boardService.getLikesFromPosts(
+      "free",
       user_id,
-      await freeBoardService.findAllPost(
+      await boardService.findAllPost(
+        "free",
         pageSize,
         offset,
         category,
-        country_id,
         keyword,
-        true
+        true, // search
+        country_id,
+        null //univ_id
       ),
       sort,
       keyword
     );
+
     if (user_id !== undefined) {
       const user = await userService.findUser({ user_id });
-      univSearch = await univBoardService.getLikesFromPosts(
+
+      univSearch = await boardService.getLikesFromPosts(
+        "univ",
         user_id,
-        await univBoardService.findAllPost(
+        await boardService.findAllPost(
+          "univ",
           pageSize,
           offset,
           category,
-          user.univ_id,
           keyword,
-          true
+          true, // search
+          null, // country_id
+          user.univ_id
         ),
         sort,
         keyword
@@ -72,6 +78,7 @@ const searchPost = async (req, res, next) => {
     });
   }
 };
+
 module.exports = {
   searchPost,
 };
