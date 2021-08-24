@@ -83,17 +83,25 @@ const getMyPost = async (req, res) => {
     const my_free_post = await userService.getLikesFromPosts(
       "free",
       user_id,
-      await userService.findPosts("free", { user_id }, pageSize, offset, false)
+      await userService.findPosts("free", { user_id }, false)
     );
     const my_univ_post = await userService.getLikesFromPosts(
       "univ",
       user_id,
-      await userService.findPosts("univ", { user_id }, pageSize, offset, false)
+      await userService.findPosts("univ", { user_id }, false)
     );
-
+    let my_posts = userService
+      .concatenateArray(my_free_post, my_univ_post)
+      .sort(
+        (a, b) =>
+          new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
+      );
+    const totalPage = Math.ceil(my_posts["countPage"] / pageSize);
+    my_posts = my_posts.slice(offset, Number(offset) + Number(pageSize));
     res.status(200).send({
       ok: true,
-      posts: userService.concatenateArray(my_free_post, my_univ_post),
+      my_posts,
+      totalPage,
     });
   } catch (err) {
     console.error(err);
@@ -122,17 +130,26 @@ const getMyComment = async (req, res) => {
     const my_free_comment = await userService.getLikesFromPosts(
       "free",
       user_id,
-      await userService.findPosts("free", { user_id }, pageSize, offset, true)
+      await userService.findPosts("free", { user_id }, true)
     );
     const my_univ_comment = await userService.getLikesFromPosts(
       "univ",
       user_id,
-      await userService.findPosts("univ", { user_id }, pageSize, offset, true)
+      await userService.findPosts("univ", { user_id }, true)
     );
 
+    let my_comments = userService
+      .concatenateArray(my_free_comment, my_univ_comment)
+      .sort(
+        (a, b) =>
+          new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
+      );
+    const totalPage = Math.ceil(my_comments["countPage"] / pageSize);
+    my_comments = my_comments.slice(offset, Number(offset) + Number(pageSize));
     res.status(200).send({
       ok: true,
-      comments: userService.concatenateArray(my_free_comment, my_univ_comment),
+      my_comments,
+      totalPage,
     });
   } catch (err) {
     console.error(err);

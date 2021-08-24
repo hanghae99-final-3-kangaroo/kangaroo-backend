@@ -12,7 +12,6 @@ const {
   issue,
 } = require("../models");
 const Sequelize = require("sequelize");
-const { issueService } = require(".");
 
 const findUser = async (field) => {
   return await user.findOne({
@@ -28,19 +27,11 @@ const createUser = async (fields) => {
   return await user.create(fields);
 };
 
-const findPosts = async (
-  model,
-  additionalOptions,
-  pageSize,
-  offset,
-  ifComment
-) => {
+const findPosts = async (model, additionalOptions, ifComment) => {
   const options = {
     subQuery: false,
     raw: true,
-    limit: Number(pageSize),
     order: [["createdAt", "DESC"]],
-    offset: offset,
     where: {},
     attributes: [
       "post_id",
@@ -66,12 +57,16 @@ const findPosts = async (
   } else {
     options.where = additionalOptions;
   }
+  let ret;
   if (model == "free") {
-    return await free_board.findAll(options);
+    ret = await free_board.findAndCountAll(options);
+    ret["count"] = ret["count"].length;
   } else if (model == "univ") {
     options.include[0].model = univ_comment;
-    return await univ_board.findAll(options);
+    ret = await univ_board.findAndCountAll(options);
+    ret["count"] = ret["count"].length;
   }
+  return ret;
 };
 
 const getLikesFromPosts = async (model, user_id, posts) => {
@@ -139,7 +134,9 @@ const updateTarget = async (target, field) => {
 
 const concatenateArray = (free, univ) => {
   let ret = [];
+  let countPage = 0;
   if (free) {
+    countPage += free["count"];
     free = free["rows"];
     free.forEach(function (e) {
       e.board = "free";
@@ -147,12 +144,14 @@ const concatenateArray = (free, univ) => {
     ret = ret.concat(free);
   }
   if (univ) {
+    countPage += univ["count"];
     univ = univ["rows"];
     univ.forEach(function (e) {
       e.board = "univ";
     });
     ret = ret.concat(univ);
   }
+  ret["countPage"] = countPage;
   return ret;
 };
 
