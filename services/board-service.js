@@ -11,6 +11,81 @@ const {
 const Sequelize = require("sequelize");
 const { or, like } = Sequelize.Op;
 
+// 좋아요 모델 교체
+const getLikeModel = (like) => {
+  if (like == "free") return free_like;
+  if (like == "univ") return univ_like;
+};
+
+// 좋아요 추가 또는 삭제
+const checkLike = async (like, my_like, post_id, user_id) => {
+  like = getLikeModel(like);
+
+  if (my_like == null) {
+    await like.create({ post_id, user_id });
+    return "liked post";
+  } else {
+    await like.destroy({ where: { post_id, user_id } });
+    return "disliked post";
+  }
+};
+
+// 좋아요 유무 검증
+const findLike = async (like, post_id, user_id) => {
+  like = getLikeModel(like);
+
+  if (user_id == undefined) {
+    return await like.findAll({ where: { post_id } });
+  } else {
+    return await like.findOne({
+      where: {
+        user_id,
+        post_id,
+      },
+    });
+  }
+};
+
+// 게시글 좋아요 갯수 + 내가 좋아요 했는지 유무 조회
+const getLikesFromPosts = async (like, user_id, posts, sort, keyword) => {
+  like = getLikeModel(like);
+
+  for (let i = 0; i < posts["rows"].length; i++) {
+    let is_like = false;
+    if (user_id != null) {
+      my_like = await like.findOne({
+        where: {
+          user_id,
+          post_id: posts["rows"][i].post_id,
+        },
+      });
+      // console.log(my_like);
+      if (my_like) {
+        is_like = true;
+      }
+    }
+    all_like = await like.findAll({
+      where: { post_id: posts["rows"][i].post_id },
+    });
+    posts["rows"][i].like = {
+      is_like,
+      all_like: all_like.length,
+    };
+  }
+
+  if (sort == "relative") {
+    for (let i = 0; i < posts["rows"].length; i++) {
+      let rel = 0;
+      rel += posts["rows"][i]["title"].split(keyword).length - 1;
+      rel += posts["rows"][i]["content"].split(keyword).length - 1;
+      posts["rows"][i]["rel"] = rel;
+    }
+    posts["rows"].sort((a, b) => b.rel - a.rel); // rel의 값 순으로 내림차순 정렬.sort((a, b) => b.rel - a.rel); // rel의 값 순으로 내림차순 정렬
+  }
+
+  return posts;
+};
+
 // 게시글 전체 조회
 const findAllPost = async (
   board,
@@ -86,50 +161,15 @@ const findAllPost = async (
   return posts;
 };
 
-// 게시글 좋아요 갯수 + 내가 좋아요 했는지 유무 조회
-const getLikesFromPosts = async (board, user_id, posts, sort, keyword) => {
-  if (board == "free") board = free_like;
-  if (board == "univ") board = univ_like;
-
-  for (let i = 0; i < posts["rows"].length; i++) {
-    let is_like = false;
-    if (user_id != null) {
-      my_like = await board.findOne({
-        where: {
-          user_id,
-          post_id: posts["rows"][i].post_id,
-        },
-      });
-      if (my_like) {
-        is_like = true;
-      }
-    }
-    all_like = await board.findAll({
-      where: { post_id: posts["rows"][i].post_id },
-    });
-    posts["rows"][i].like = {
-      is_like,
-      all_like: all_like.length,
-    };
-  }
-
-  if (sort == "relative") {
-    for (let i = 0; i < posts["rows"].length; i++) {
-      let rel = 0;
-      rel += posts["rows"][i]["title"].split(keyword).length - 1;
-      rel += posts["rows"][i]["content"].split(keyword).length - 1;
-      posts["rows"][i]["rel"] = rel;
-    }
-    posts["rows"].sort((a, b) => b.rel - a.rel); // rel의 값 순으로 내림차순 정렬.sort((a, b) => b.rel - a.rel); // rel의 값 순으로 내림차순 정렬
-  }
-
-  return posts;
+// 게시글 모델 교체
+const getBoardModel = (board) => {
+  if (board == "free") return free_board;
+  if (board == "univ") return univ_board;
 };
 
 // 게시글 단일 조회
 const findOnePost = async (board, post_id) => {
-  if (board == "free") board = free_board;
-  if (board == "univ") board = univ_board;
+  board = getBoardModel(board);
 
   const result = await board.findOne({
     where: { post_id },
@@ -153,8 +193,7 @@ const findOnePost = async (board, post_id) => {
 
 // 게시글 생성
 const createPost = async (board, post) => {
-  if (board == "free") board = free_board;
-  if (board == "univ") board = univ_board;
+  board = getBoardModel(board);
 
   if (post["img_list"] != undefined)
     post["img_list"] = post["img_list"].toString();
@@ -172,8 +211,7 @@ const createPost = async (board, post) => {
 
 // 게시글 수정
 const updatePost = async (board, post, post_id) => {
-  if (board == "free") board = free_board;
-  if (board == "univ") board = univ_board;
+  board = getBoardModel(board);
 
   if (post["img_list"] != undefined)
     post["img_list"] = post["img_list"].toString();
@@ -219,41 +257,20 @@ const deletePost = async (board, post_id) => {
   });
 };
 
-// 좋아요 추가 또는 삭제
-const checkLike = async (board, my_like, post_id, user_id) => {
-  if (board == "free") board = free_like;
-  if (board == "univ") board = univ_like;
+// 게시글 조회수 증가
+const countViewPost = async (board, post_id) => {
+  board = getBoardModel(board);
 
-  if (my_like == null) {
-    await board.create({ post_id, user_id });
-    return "liked post";
-  } else {
-    await board.destroy({ where: { post_id, user_id } });
-    return "disliked post";
-  }
+  return await board.increment({ view_count: +1 }, { where: { post_id } });
 };
 
-// 좋아요 유무 검증
-const findLike = async (board, post_id, user_id) => {
-  if (board == "free") board = free_like;
-  if (board == "univ") board = univ_like;
-
-  if (user_id == undefined) {
-    return await board.findAll({ where: { post_id } });
-  } else {
-    return await board.findOne({
-      where: {
-        user_id,
-        post_id,
-      },
-    });
-  }
-};
+// 댓글 모델 교체
 const getCommentModel = (comment) => {
   if (comment == "free") return free_comment;
   if (comment == "univ") return univ_comment;
   if (comment == "election") return election_comment;
 };
+
 // 댓글 작성
 const createComment = async (comment, user_id, post_id, content) => {
   comment = getCommentModel(comment);
@@ -311,14 +328,6 @@ const findOneComment = async (comment, comment_id) => {
   return await comment.findOne({
     where: { comment_id },
   });
-};
-
-// 게시글 조회수 증가
-const countViewPost = async (board, post_id) => {
-  if (board == "free") board = free_board;
-  if (board == "univ") board = univ_board;
-
-  return await board.increment({ view_count: +1 }, { where: { post_id } });
 };
 
 // 대학 게시판 공지글 조회
