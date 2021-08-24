@@ -95,7 +95,7 @@ const getMyPost = async (req, res) => {
       .concatenateArray(my_free_post, my_univ_post)
       .sort(
         (a, b) =>
-          new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
+          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
       );
     const totalPage = Math.ceil(my_posts["countPage"] / pageSize);
     my_posts = my_posts.slice(offset, Number(offset) + Number(pageSize));
@@ -152,8 +152,8 @@ const getMyComment = async (req, res) => {
     });
     my_comments.sort(
       (a, b) =>
-        new Date(a.comment.createdAt).getTime() -
-        new Date(b.comment.createdAt).getTime()
+        new Date(b.comment.createdAt).getTime() -
+        new Date(a.comment.createdAt).getTime()
     );
     const totalPage = Math.ceil(my_comments["countPage"] / pageSize);
     my_comments = my_comments.slice(offset, Number(offset) + Number(pageSize));
