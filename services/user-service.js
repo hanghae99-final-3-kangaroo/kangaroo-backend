@@ -38,7 +38,7 @@ const findComments = async (model, user_id) => {
   where ${model}_comment.user_id=${user_id}`,
     { type: Sequelize.QueryTypes.SELECT }
   );
-  console.log(myComments);
+
   return myComments;
 };
 const findPosts = async (model, additionalOptions) => {
@@ -139,7 +139,7 @@ const findUniv = async (field) => {
 const updateTarget = async (target, field) => {
   await target.update(field);
 };
-const concatnateComment = (free, univ) => {
+const concatenateComment = (free, univ) => {
   let ret = [];
   let countPage = 0;
   if (free) {
@@ -186,5 +186,5 @@ module.exports = {
   updateTarget,
   concatenateArray,
   findComments,
-  concatnateComment,
+  concatenateComment,
 };

@@ -139,7 +139,7 @@ const getMyComment = async (req, res) => {
       user_id,
       await userService.findComments("univ", user_id)
     );
-    let my_comments = userService.concatnateComment(
+    let my_comments = userService.concatenateComment(
       my_free_comment,
       my_univ_comment
     );
