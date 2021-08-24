@@ -380,7 +380,7 @@ const voteResult = async (req, res) => {
 
 const makeComment = async (req, res, next) => {
   try {
-    const { user_id } = res.locals.user;
+    const { user_id, univ_id } = res.locals.user;
 
     const { election_id, content } = req.body;
 
@@ -390,6 +390,28 @@ const makeComment = async (req, res, next) => {
       res.status(403).send({
         ok: false,
         message: "존재하지 않는 선거 입니다.",
+      });
+      return;
+    }
+    if (univ_id == null) {
+      //내가 다니는 대학이 없을 때
+      res.status(403).send({
+        ok: false,
+        message: "내가 재학중인 대학교가 없습니다.",
+      });
+      return;
+    } else if (electionCheck.univ_id != univ_id) {
+      //내가 다니는 대학이 아닐 때
+      res.status(401).send({
+        ok: false,
+        message: "내가 재학중인 대학교가 아닙니다.",
+      });
+      return;
+    } else if (electionCheck.end_date > new Date()) {
+      //투표 기간이 지났을 때
+      res.status(403).send({
+        ok: false,
+        message: "투표 기간이 끝나지 않았습니다.",
       });
       return;
     }
@@ -416,9 +438,11 @@ const makeComment = async (req, res, next) => {
 
 const getComment = async (req, res, next) => {
   try {
+    const { univ_id } = res.locals.user;
     const { election_id } = req.params;
     const result = await boardService.findAllComment("election", election_id);
 
+    const electionCheck = await electionService.findElection(election_id);
     if (result.length == 0) {
       res.status(200).send({
         result,
@@ -428,6 +452,28 @@ const getComment = async (req, res, next) => {
       return;
     }
 
+    if (univ_id == null) {
+      //내가 다니는 대학이 없을 때
+      res.status(403).send({
+        ok: false,
+        message: "내가 재학중인 대학교가 없습니다.",
+      });
+      return;
+    } else if (electionCheck.univ_id != univ_id) {
+      //내가 다니는 대학이 아닐 때
+      res.status(401).send({
+        ok: false,
+        message: "내가 재학중인 대학교가 아닙니다.",
+      });
+      return;
+    } else if (electionCheck.end_date > new Date()) {
+      //투표 기간이 지났을 때
+      res.status(403).send({
+        ok: false,
+        message: "투표 기간이 끝나지 않았습니다.",
+      });
+      return;
+    }
     res.status(200).send({
       result,
       ok: true,
@@ -482,7 +528,7 @@ const putComment = async (req, res, next) => {
 
 const deleteComment = async (req, res, next) => {
   try {
-    const { user_id } = res.locals.user;
+    const { user_id, univ_id } = res.locals.user;
     const { comment_id } = req.params;
 
     const result = await boardService.findOneComment("election", comment_id);
@@ -495,6 +541,28 @@ const deleteComment = async (req, res, next) => {
       return;
     }
 
+    if (univ_id == null) {
+      //내가 다니는 대학이 없을 때
+      res.status(403).send({
+        ok: false,
+        message: "내가 재학중인 대학교가 없습니다.",
+      });
+      return;
+    } else if (electionCheck.univ_id != univ_id) {
+      //내가 다니는 대학이 아닐 때
+      res.status(401).send({
+        ok: false,
+        message: "내가 재학중인 대학교가 아닙니다.",
+      });
+      return;
+    } else if (electionCheck.end_date > new Date()) {
+      //투표 기간이 지났을 때
+      res.status(403).send({
+        ok: false,
+        message: "투표 기간이 끝나지 않았습니다.",
+      });
+      return;
+    }
     if (user_id != result["user_id"]) {
       return res.status(401).send({ ok: false, message: "작성자가 아닙니다" });
     }

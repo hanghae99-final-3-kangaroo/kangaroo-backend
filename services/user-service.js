@@ -8,6 +8,7 @@ const {
   free_like,
   univ_board,
   univ_comment,
+  election_comment,
   univ_like,
   issue,
   sequelize,
@@ -120,6 +121,9 @@ const delUser = async (user_id) => {
     where: { user_id },
   });
   await univ_comment.destroy({
+    where: { user_id },
+  });
+  await election_comment.destroy({
     where: { user_id },
   });
   await vote.destroy({
