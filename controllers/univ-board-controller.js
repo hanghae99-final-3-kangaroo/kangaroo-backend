@@ -1,10 +1,30 @@
-const { boardService } = require("../services");
+const { boardService, userService } = require("../services");
 
 const makePost = async (req, res, next) => {
   try {
     const { user_id } = res.locals.user;
 
     const { univ_id, title, category, content, img_list, is_fixed } = req.body;
+
+    const checkAdmin = await userService.findUniv({
+      admin_id: user_id,
+    });
+
+    if (is_fixed == true) {
+      if (checkAdmin == null) {
+        res.status(401).send({
+          ok: false,
+          message: `당신에게는 권한이 없습니다.`,
+        });
+        return;
+      } else if (checkAdmin["univ_id"] != univ_id) {
+        res.status(401).send({
+          ok: false,
+          message: "당신은 이 대학의 관리자가 아닙니다.",
+        });
+        return;
+      }
+    }
 
     const result = await boardService.createPost("univ", {
       user_id,
