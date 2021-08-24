@@ -10,6 +10,7 @@ const {
   univ_comment,
   univ_like,
   issue,
+  sequelize,
 } = require("../models");
 const Sequelize = require("sequelize");
 
@@ -27,7 +28,20 @@ const createUser = async (fields) => {
   return await user.create(fields);
 };
 
-const findPosts = async (model, additionalOptions, ifComment) => {
+const findComments = async (model, user_id) => {
+  const myComments = await sequelize.query(
+    `
+  select *,"${model}" as board,${model}_comment.content as comment_content,${model}_comment.createdAt as comment_createdAt,
+  (count(${model}_comment.comment_id) over (partition by ${model}_board.post_id)) as comment_count 
+  from ${model}_board
+  inner join ${model}_comment on ${model}_board.post_id=${model}_comment.post_id 
+  where ${model}_comment.user_id=${user_id}`,
+    { type: Sequelize.QueryTypes.SELECT }
+  );
+  console.log(myComments);
+  return myComments;
+};
+const findPosts = async (model, additionalOptions) => {
   const options = {
     subQuery: false,
     raw: true,
@@ -51,12 +65,8 @@ const findPosts = async (model, additionalOptions, ifComment) => {
     ],
     group: ["post_id"],
   };
-  if (ifComment) {
-    options.include[0].where = additionalOptions;
-    options.include[0].attributes = ["content", "createdAt"];
-  } else {
-    options.where = additionalOptions;
-  }
+  options.where = additionalOptions;
+
   let ret;
   if (model == "free") {
     ret = await free_board.findAndCountAll(options);
@@ -96,7 +106,6 @@ const getLikesFromPosts = async (model, user_id, posts) => {
   }
   return posts;
 };
-
 const delUser = async (user_id) => {
   await issue.destroy({
     where: { user_id },
@@ -130,7 +139,20 @@ const findUniv = async (field) => {
 const updateTarget = async (target, field) => {
   await target.update(field);
 };
-
+const concatnateComment = (free, univ) => {
+  let ret = [];
+  let countPage = 0;
+  if (free) {
+    countPage += free.length;
+    ret = ret.concat(free);
+  }
+  if (univ) {
+    countPage += univ.length;
+    ret = ret.concat(univ);
+  }
+  ret["countPage"] = countPage;
+  return ret;
+};
 const concatenateArray = (free, univ) => {
   let ret = [];
   let countPage = 0;
@@ -163,4 +185,6 @@ module.exports = {
   findUniv,
   updateTarget,
   concatenateArray,
+  findComments,
+  concatnateComment,
 };

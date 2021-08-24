@@ -115,7 +115,7 @@ const getMyPost = async (req, res) => {
 
 const getMyComment = async (req, res) => {
   const { user_id } = res.locals.user;
-  //const user_id = 1;
+  // const user_id = 1;
   const { pageSize, pageNum } = req.query;
   if (!pageSize || !pageNum) {
     res.status(403).send({
@@ -132,32 +132,23 @@ const getMyComment = async (req, res) => {
     const my_free_comment = await userService.getLikesFromPosts(
       "free",
       user_id,
-      await userService.findPosts("free", { user_id }, true)
+      await userService.findComments("free", user_id)
     );
     const my_univ_comment = await userService.getLikesFromPosts(
       "univ",
       user_id,
-      await userService.findPosts("univ", { user_id }, true)
+      await userService.findComments("univ", user_id)
     );
-
-    let my_comments = userService.concatenateArray(
+    let my_comments = userService.concatnateComment(
       my_free_comment,
       my_univ_comment
     );
     my_comments.forEach(function (c) {
-      if (c["free_comments.createdAt"]) {
-        c.comment = {};
-        c.comment.createdAt = c["free_comments.createdAt"];
-        c.comment.content = c["free_comments.content"];
-        delete c["free_comments.createdAt"];
-        delete c["free_comments.content"];
-      } else {
-        c.comment = {};
-        c.comment.createdAt = c["univ_comments.createdAt"];
-        c.comment.content = c["univ_comments.content"];
-        delete c["univ_comments.createdAt"];
-        delete c["univ_comments.content"];
-      }
+      c.comment = {};
+      c.comment.createdAt = c["comment_createdAt"];
+      c.comment.content = c["comment_content"];
+      delete c["comment_createdAt"];
+      delete c["comment_content"];
     });
     my_comments.sort(
       (a, b) =>
