@@ -23,7 +23,11 @@ router.get(
 
 router.post("/comment", authMiddleware, electionController.makeComment);
 
-router.get("/comment/:election_id", electionController.getComment);
+router.get(
+  "/comment/:election_id",
+  authMiddleware,
+  electionController.getComment
+);
 
 router.put(
   "/comment/:comment_id",
