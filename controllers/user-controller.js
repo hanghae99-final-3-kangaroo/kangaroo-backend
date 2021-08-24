@@ -67,6 +67,7 @@ const makeUser = async (req, res, next) => {
 
 const getMyPost = async (req, res) => {
   const { user_id } = res.locals.user;
+  // const user_id = 1;
   const { pageSize, pageNum } = req.query;
   if (!pageSize || !pageNum) {
     res.status(403).send({
@@ -114,6 +115,7 @@ const getMyPost = async (req, res) => {
 
 const getMyComment = async (req, res) => {
   const { user_id } = res.locals.user;
+  //const user_id = 1;
   const { pageSize, pageNum } = req.query;
   if (!pageSize || !pageNum) {
     res.status(403).send({
@@ -138,12 +140,30 @@ const getMyComment = async (req, res) => {
       await userService.findPosts("univ", { user_id }, true)
     );
 
-    let my_comments = userService
-      .concatenateArray(my_free_comment, my_univ_comment)
-      .sort(
-        (a, b) =>
-          new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
-      );
+    let my_comments = userService.concatenateArray(
+      my_free_comment,
+      my_univ_comment
+    );
+    my_comments.forEach(function (c) {
+      if (c["free_comments.createdAt"]) {
+        c.comment = {};
+        c.comment.createdAt = c["free_comments.createdAt"];
+        c.comment.content = c["free_comments.content"];
+        delete c["free_comments.createdAt"];
+        delete c["free_comments.content"];
+      } else {
+        c.comment = {};
+        c.comment.createdAt = c["univ_comments.createdAt"];
+        c.comment.content = c["univ_comments.content"];
+        delete c["univ_comments.createdAt"];
+        delete c["univ_comments.content"];
+      }
+    });
+    my_comments.sort(
+      (a, b) =>
+        new Date(a.comment.createdAt).getTime() -
+        new Date(b.comment.createdAt).getTime()
+    );
     const totalPage = Math.ceil(my_comments["countPage"] / pageSize);
     my_comments = my_comments.slice(offset, Number(offset) + Number(pageSize));
     res.status(200).send({

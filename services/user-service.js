@@ -53,19 +53,18 @@ const findPosts = async (model, additionalOptions, ifComment) => {
   };
   if (ifComment) {
     options.include[0].where = additionalOptions;
-    options.include[0].attributes = ["content"];
+    options.include[0].attributes = ["content", "createdAt"];
   } else {
     options.where = additionalOptions;
   }
   let ret;
   if (model == "free") {
     ret = await free_board.findAndCountAll(options);
-    ret["count"] = ret["count"].length;
   } else if (model == "univ") {
     options.include[0].model = univ_comment;
     ret = await univ_board.findAndCountAll(options);
-    ret["count"] = ret["count"].length;
   }
+  ret["count"] = ret["count"].length;
   return ret;
 };
 
