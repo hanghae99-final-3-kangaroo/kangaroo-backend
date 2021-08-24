@@ -32,11 +32,16 @@ const createUser = async (fields) => {
 const findComments = async (model, user_id) => {
   const myComments = await sequelize.query(
     `
-  select *,"${model}" as board,${model}_comment.content as comment_content,${model}_comment.createdAt as comment_createdAt,
-  (count(${model}_comment.comment_id) over (partition by ${model}_board.post_id)) as comment_count 
-  from ${model}_board
-  inner join ${model}_comment on ${model}_board.post_id=${model}_comment.post_id 
-  where ${model}_comment.user_id=${user_id}`,
+  select *,"${model}" as board,
+  ${model}_comment.content as comment_content,
+  ${model}_comment.createdAt as comment_createdAt,
+(select count(comment_id) from ${model}_board t1 
+inner join ${model}_comment on t1.post_id=${model}_comment.post_id 
+where t1.post_id = t.post_id) as comment_count
+from ${model}_board t
+inner join ${model}_comment on t.post_id=${model}_comment.post_id 
+where ${model}_comment.user_id=${user_id}
+  `,
     { type: Sequelize.QueryTypes.SELECT }
   );
 
