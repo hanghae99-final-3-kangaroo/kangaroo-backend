@@ -7,8 +7,10 @@ const {
   election_comment,
   free_like,
   univ_like,
+  issue,
 } = require("../models");
 const Sequelize = require("sequelize");
+const { issueService } = require(".");
 const { or, like } = Sequelize.Op;
 
 // 좋아요 모델 교체
@@ -124,9 +126,7 @@ const findAllPost = async (
     if (country_id !== undefined) options.where.country_id = country_id;
     options.include[0].model = free_comment;
     board = free_board;
-  }
-
-  if (board == "univ") {
+  } else if (board == "univ") {
     options.where.univ_id = univ_id;
     options.include[0].model = univ_comment;
     board = univ_board;
@@ -239,8 +239,11 @@ const deletePost = async (board, post_id) => {
     board = free_board;
     comment = free_comment;
     like = free_like;
-  }
-  if (board == "univ") {
+
+    await issue.destroy({
+      where: { post_id },
+    });
+  } else if (board == "univ") {
     board = univ_board;
     comment = univ_comment;
     like = univ_like;
