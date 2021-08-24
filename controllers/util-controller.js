@@ -34,8 +34,8 @@ const searchPost = async (req, res, next) => {
       user_id,
       await boardService.findAllPost(
         "free",
-        pageSize,
-        offset,
+        10000,
+        1,
         category,
         keyword,
         true, // search
@@ -54,8 +54,8 @@ const searchPost = async (req, res, next) => {
         user_id,
         await boardService.findAllPost(
           "univ",
-          pageSize,
-          offset,
+          10000,
+          1,
           category,
           keyword,
           true, // search
@@ -66,8 +66,19 @@ const searchPost = async (req, res, next) => {
         keyword
       );
     }
+
+    let result = userService
+      .concatenateArray(freeSearch, univSearch)
+      .sort(
+        (a, b) =>
+          new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
+      );
+    const totalPage = Math.ceil(result["countPage"] / pageSize);
+    result = result.slice(offset, Number(offset) + Number(pageSize));
+
     res.status(200).send({
-      result: userService.concatenateArray(freeSearch, univSearch),
+      result,
+      totalPage,
       ok: true,
     });
   } catch (err) {
