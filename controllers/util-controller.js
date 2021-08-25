@@ -35,7 +35,7 @@ const searchPost = async (req, res, next) => {
       await boardService.findAllPost(
         "free",
         10000,
-        1,
+        0,
         category,
         keyword,
         true, // search
@@ -55,7 +55,7 @@ const searchPost = async (req, res, next) => {
         await boardService.findAllPost(
           "univ",
           10000,
-          1,
+          0,
           category,
           keyword,
           true, // search
