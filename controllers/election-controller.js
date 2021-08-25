@@ -533,7 +533,7 @@ const deleteComment = async (req, res, next) => {
 
     const result = await boardService.findOneComment("election", comment_id);
 
-    const electionCheck = await electionService.findElection(election_id);
+    const electionCheck = await electionService.findElection(result.post_id);
     if (result == null) {
       res.status(403).send({
         ok: false,
