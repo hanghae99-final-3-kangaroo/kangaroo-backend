@@ -90,6 +90,34 @@ const searchPost = async (req, res, next) => {
   }
 };
 
+const searchNickname = async (req, res, next) => {
+  try {
+    const { nickname } = req.body;
+
+    const dupNick = await userService.findUser({ nickname });
+
+    if (dupNick) {
+      res.status(403).send({
+        ok: false,
+        message: "닉네임 중복",
+      });
+      return;
+    }
+
+    res.status(200).send({
+      ok: true,
+      message: "닉네임 사용 가능!",
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(400).send({
+      ok: false,
+      message: `${err} : 닉네임 조회 실패`,
+    });
+  }
+};
+
 module.exports = {
   searchPost,
+  searchNickname,
 };

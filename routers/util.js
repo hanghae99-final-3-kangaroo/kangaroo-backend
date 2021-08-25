@@ -41,4 +41,6 @@ router.post("/bulk-image", imageUploader.array("img"), async (req, res) => {
 
 router.get("/search", likeMiddleware, utilController.searchPost);
 
+router.get("/nickname", utilController.searchNickname);
+
 module.exports = router;
