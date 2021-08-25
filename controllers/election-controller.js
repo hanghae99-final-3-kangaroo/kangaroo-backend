@@ -531,12 +531,10 @@ const deleteComment = async (req, res, next) => {
     const { user_id, univ_id } = res.locals.user;
     const { comment_id } = req.params;
 
-    const electionCheck = await boardService.findOneComment(
-      "election",
-      comment_id
-    );
+    const result = await boardService.findOneComment("election", comment_id);
 
-    if (electionCheck == null) {
+    const electionCheck = await electionService.findElection(election_id);
+    if (result == null) {
       res.status(403).send({
         ok: false,
         message: "댓글이 없습니다",
