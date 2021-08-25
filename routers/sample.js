@@ -268,6 +268,11 @@ router.get("/sample4", async (req, res, next) => {
       country_id: 5,
       email_domain: "kcl.ac.uk",
     });
+    await university.create({
+      name: "Solent University",
+      country_id: 5,
+      email_domain: "solent.ac.uk",
+    });
     res.status(200).send("가상 데이터 생성 성공");
   } catch (err) {
     console.error(err);
