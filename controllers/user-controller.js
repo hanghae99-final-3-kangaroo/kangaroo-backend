@@ -6,10 +6,9 @@ const MailSender = require("../src/MailSender");
 
 const postUserModel = Joi.object({
   email: Joi.string().email().required(),
-  nickname: Joi.string().min(4).max(20).required(),
+  nickname: Joi.string().min(2).max(20).required(),
   password: Joi.string()
-    .alphanum()
-    .pattern(new RegExp("^[a-zA-Z0-9]{4,30}$"))
+    .pattern(new RegExp("^[a-zA-Z0-9~!@#$%^&*()_+-=,./?]{4,30}$"))
     .required(),
 });
 
