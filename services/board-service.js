@@ -320,7 +320,7 @@ const findAllComment = async (comment, post_id) => {
         attributes: ["user_id", "nickname"],
       },
     ],
-    order: '"createdAt" DESC',
+    order: [["createdAt", "DESC"]],
   });
 };
 
