@@ -10,7 +10,6 @@ const {
   issue,
 } = require("../models");
 const Sequelize = require("sequelize");
-const { issueService } = require(".");
 const { or, like } = Sequelize.Op;
 
 // 좋아요 모델 교체

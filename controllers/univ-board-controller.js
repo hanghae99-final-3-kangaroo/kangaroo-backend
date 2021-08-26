@@ -242,6 +242,14 @@ const putPost = async (req, res, next) => {
       return res.status(401).send({ ok: false, message: "작성자가 아닙니다" });
     }
 
+    if (img_list != undefined && result["img_list"].length === 0) {
+      findDeleteImg = result["img_list"].filter((x) => !img_list.includes(x));
+
+      for (let i = 0; i < findDeleteImg.length; i++) {
+        fs.unlinkSync(appDir + "/public/" + findDeleteImg[i]);
+      }
+    }
+
     const newPost = await boardService.updatePost(
       "univ",
       {
@@ -286,6 +294,12 @@ const deletePost = async (req, res, next) => {
 
     if (user_id !== result.user_id) {
       return res.status(401).send({ ok: false, message: "작성자가 아닙니다" });
+    }
+
+    if (result["img_list"]) {
+      for (let i = 0; i < result["img_list"].length; i++) {
+        fs.unlinkSync(appDir + "/public/" + result["img_list"][i]);
+      }
     }
 
     await boardService.deletePost("univ", post_id);
