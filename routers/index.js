@@ -9,7 +9,7 @@ const authRouter = require("./auth-router");
 const messageRouter = require("./message");
 const utilRouter = require("./util");
 const issueRouter = require("./issue-router");
-const sampleRouter = require("./sample");
+const initRouter = require("./init");
 
 router.use("/api", [userRouter]);
 router.use("/auth", [authRouter]);
@@ -19,6 +19,6 @@ router.use("/election", [electionRouter]);
 router.use("/message", [messageRouter]);
 router.use("/util", [utilRouter]);
 router.use("/issue", [issueRouter]);
-router.use("/test", [sampleRouter]);
+router.use("/init", [initRouter]);
 
 module.exports = router; // 이렇게 내보낸 router 는 express app 의 미들웨어로 사용됩니다.
