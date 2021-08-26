@@ -124,10 +124,12 @@ const findAllPost = async (
   if (board == "free") {
     if (country_id !== undefined) options.where.country_id = country_id;
     options.include[0].model = free_comment;
+    options.include[0].order = [free_comment, "createdAt", "desc"];
     board = free_board;
   } else if (board == "univ") {
     options.where.univ_id = univ_id;
     options.include[0].model = univ_comment;
+    options.include[0].order = [univ_comment, "createdAt", "desc"];
     board = univ_board;
   }
 
