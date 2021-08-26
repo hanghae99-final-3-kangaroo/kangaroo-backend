@@ -273,7 +273,7 @@ const deletePost = async (req, res, next) => {
       return res.status(401).send({ ok: false, message: "작성자가 아닙니다" });
     }
 
-    if (result["img_list"]) {
+    if (result["img_list"] && result["img_list"] != "") {
       for (let i = 0; i < result["img_list"].length; i++) {
         fs.unlinkSync(appDir + "/public/" + result["img_list"][i]);
       }
