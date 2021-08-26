@@ -52,6 +52,23 @@ class MailSender {
         subject: "비밀번호 재설정을 위한 인증번호를 입력해주세요.",
         html: emailTemplete,
       };
+    } else if (type == "welcome") {
+      ejs.renderFile(
+        appDir + "/template/welcome.ejs",
+        { authCode },
+        function (err, data) {
+          if (err) {
+            console.log(err);
+          }
+          emailTemplete = data;
+        }
+      );
+      message = {
+        from: `UFO`,
+        to: targetEmail,
+        subject: '"UFO - 유학생의 프리한 오늘"에 가입하신것을 환영합니다!',
+        html: emailTemplete,
+      };
     }
 
     return this._transporter.sendMail(message);

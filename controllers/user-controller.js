@@ -1,6 +1,8 @@
 const bcrypt = require("bcrypt");
 const Joi = require("joi");
 const { userService } = require("../services");
+const Listener = require("../src/Listener");
+const MailSender = require("../src/MailSender");
 
 const postUserModel = Joi.object({
   email: Joi.string().email().required(),
@@ -52,6 +54,13 @@ const makeUser = async (req, res, next) => {
       provider,
     });
 
+    const mailSender = new MailSender();
+    const listener = new Listener(mailSender);
+    listener.listen({
+      targetEmail: email,
+      type: "welcome",
+      authCode: "0",
+    });
     res.status(200).send({
       ok: true,
       result: createdUser,
