@@ -1,5 +1,9 @@
 const { boardService, userService } = require("../services");
 
+const fs = require("fs");
+const path = require("path");
+const appDir = path.dirname(require.main.filename);
+
 const makePost = async (req, res, next) => {
   try {
     const { user_id } = res.locals.user;
