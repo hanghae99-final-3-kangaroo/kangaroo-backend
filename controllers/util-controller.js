@@ -134,13 +134,15 @@ const cleanUp = async (req, res, next) => {
     const publicFolder = "./public/";
     const savedImages = fs.readdirSync(publicFolder);
 
-    const findDeleteImg = savedImages.filter((x) => !concatImages.includes(x));
+    let filterSavedImages = savedImages.filter((x) => x !== "public.js");
+
+    const findDeleteImg = filterSavedImages.filter(
+      (x) => !concatImages.includes(x)
+    );
 
     for (let i = 0; i < findDeleteImg.length; i++) {
-      if (findDeleteImg[i].split(".")[1] != "js") {
-        fs.unlinkSync(appDir + "/public/" + findDeleteImg[i]);
-        console.log(`${findDeleteImg[i]} 삭제 되었습니다.`);
-      }
+      fs.unlinkSync(appDir + "/public/" + findDeleteImg[i]);
+      console.log(`${findDeleteImg[i]} 삭제 되었습니다.`);
     }
   } catch (err) {
     console.error(err);
