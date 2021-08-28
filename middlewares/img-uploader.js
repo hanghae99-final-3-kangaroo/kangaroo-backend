@@ -32,6 +32,6 @@ module.exports = imageUploader = multer({
     },
   }),
   limits: {
-    fileSize: 5 * 1024 * 1024, // 크기제한 : 5byte
+    fileSize: 20 * 1024 * 1024, // 크기제한 :  20Mb
   },
 });
