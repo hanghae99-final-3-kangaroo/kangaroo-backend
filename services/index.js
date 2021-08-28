@@ -3,6 +3,7 @@ const electionService = require("./election-service");
 const issueService = require("./issue-service");
 const userService = require("./user-service");
 const boardService = require("./board-service");
+const utilService = require("./util-service");
 
 module.exports = {
   authService,
@@ -10,4 +11,5 @@ module.exports = {
   issueService,
   userService,
   boardService,
+  utilService,
 };

@@ -1,4 +1,8 @@
-const { userService, boardService } = require("../services");
+const { userService, boardService, utilService } = require("../services");
+
+const fs = require("fs");
+const path = require("path");
+const appDir = path.dirname(require.main.filename);
 
 const searchPost = async (req, res, next) => {
   try {
@@ -90,6 +94,7 @@ const searchPost = async (req, res, next) => {
   }
 };
 
+// 닉네임 중복 검사
 const searchNickname = async (req, res, next) => {
   try {
     const { nickname } = req.body;
@@ -117,7 +122,33 @@ const searchNickname = async (req, res, next) => {
   }
 };
 
+// 불필요한 이미지 삭제
+const cleanUp = async (req, res, next) => {
+  try {
+    const freeImages = await utilService.findAllPost("free");
+    const univImages = await utilService.findAllPost("univ");
+    const candidateImages = await utilService.findAllCandidate();
+
+    const concatImages = freeImages.concat(univImages, candidateImages);
+
+    const publicFolder = "./public/";
+    const savedImages = fs.readdirSync(publicFolder);
+
+    const findDeleteImg = savedImages.filter((x) => !concatImages.includes(x));
+
+    for (let i = 0; i < findDeleteImg.length; i++) {
+      if (findDeleteImg[i].split(".")[1] != "js") {
+        fs.unlinkSync(appDir + "/public/" + findDeleteImg[i]);
+        console.log(`${findDeleteImg[i]} 삭제 되었습니다.`);
+      }
+    }
+  } catch (err) {
+    console.error(err);
+  }
+};
+
 module.exports = {
   searchPost,
   searchNickname,
+  cleanUp,
 };

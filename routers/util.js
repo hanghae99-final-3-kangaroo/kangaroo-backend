@@ -5,6 +5,8 @@ const { utilController } = require("../controllers");
 const likeMiddleware = require("../middlewares/like-middleware");
 const imgUploader = require("../middlewares/img-uploader");
 
+const schedule = require("node-schedule");
+
 router.post("/image", imageUploader.single("img"), async (req, res) => {
   try {
     res.status(200).send({
@@ -42,5 +44,11 @@ router.post("/bulk-image", imageUploader.array("img"), async (req, res) => {
 router.get("/search", likeMiddleware, utilController.searchPost);
 
 router.get("/nickname", utilController.searchNickname);
+
+// 02 : 00 시 마다 갱신하며 불필요한 이미지 처리
+schedule.scheduleJob("0 0 2 * * *", async function () {
+  console.log(new Date().toJSON() + " 마다 갱신");
+  await utilController.cleanUp();
+});
 
 module.exports = router;
