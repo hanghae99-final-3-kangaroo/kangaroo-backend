@@ -134,11 +134,7 @@ const cleanUp = async (req, res, next) => {
     const publicFolder = "./public/";
     const savedImages = fs.readdirSync(publicFolder);
 
-    let filterSavedImages = savedImages.filter((x) => x !== "public.js");
-
-    const findDeleteImg = filterSavedImages.filter(
-      (x) => !concatImages.includes(x)
-    );
+    const findDeleteImg = savedImages.filter((x) => !concatImages.includes(x));
 
     for (let i = 0; i < findDeleteImg.length; i++) {
       fs.unlinkSync(appDir + "/public/" + findDeleteImg[i]);
