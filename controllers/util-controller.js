@@ -129,12 +129,14 @@ const cleanUp = async (req, res, next) => {
     const univImages = await utilService.findAllPost("univ");
     const candidateImages = await utilService.findAllCandidate();
 
-    const concatImages = freeImages.concat(univImages, candidateImages);
+    const useImages = freeImages.concat(univImages, candidateImages);
 
     const publicFolder = "./public/";
     const savedImages = fs.readdirSync(publicFolder);
 
-    const findDeleteImg = savedImages.filter((x) => !concatImages.includes(x));
+    const findDeleteImg = savedImages.filter(
+      (x) => !useImages.includes("/" + x)
+    );
 
     for (let i = 0; i < findDeleteImg.length; i++) {
       fs.unlinkSync(appDir + "/public/" + findDeleteImg[i]);

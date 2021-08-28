@@ -46,8 +46,8 @@ router.get("/search", likeMiddleware, utilController.searchPost);
 router.get("/nickname", utilController.searchNickname);
 
 // 02 : 00 시 마다 갱신하며 불필요한 이미지 처리
-schedule.scheduleJob("0 10 2 * * *", async function () {
-  console.log(new Date().toJSON() + " 마다 갱신");
+schedule.scheduleJob("0 0 2 * * *", async function () {
+  console.log(new Date().toJSON() + " 마다 삭제!");
   await utilController.cleanUp();
 });
 
