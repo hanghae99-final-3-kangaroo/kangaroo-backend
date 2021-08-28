@@ -139,6 +139,7 @@ const findAllPost = async (
       ],
     };
     options.where = searchWhereOption;
+    if (category !== undefined) options.where.category = category;
   }
 
   const posts = await board.findAndCountAll(options);
