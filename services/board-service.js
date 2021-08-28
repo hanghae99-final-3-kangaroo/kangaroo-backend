@@ -115,6 +115,10 @@ const findAllPost = async (
         model: [],
         attributes: [],
       },
+      {
+        model: user,
+        attributes: ["nickname"],
+      },
     ],
     group: ["post_id"],
   };
@@ -130,7 +134,6 @@ const findAllPost = async (
     options.include[0].model = univ_comment;
     board = univ_board;
   }
-
   if (search == true) {
     const searchWhereOption = {
       [or]: [
