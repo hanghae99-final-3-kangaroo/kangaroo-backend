@@ -275,7 +275,8 @@ const deletePost = async (req, res, next) => {
 
     if (result["img_list"] && result["img_list"] != "") {
       for (let i = 0; i < result["img_list"].length; i++) {
-        fs.unlinkSync(appDir + "/public/" + result["img_list"][i]);
+        if (fs.existsSync(appDir + "/public/" + result["img_list"][i]))
+          fs.unlinkSync(appDir + "/public/" + result["img_list"][i]);
       }
     }
 

@@ -244,8 +244,11 @@ const delElection = async (req, res) => {
     const myCandidates = await electionService.findAllCandidates(election_id);
 
     for (myCandidate of myCandidates) {
-      if (myCandidate.photo)
-        fs.unlinkSync(appDir + "/public/" + myCandidate.photo);
+      if (myCandidate.photo) {
+        if (fs.existsSync(appDir + "/public/" + myCandidate.photo))
+          fs.unlinkSync(appDir + "/public/" + myCandidate.photo);
+      }
+
       myCandidate.destroy();
     }
     await electionService.delVotes(election_id);
