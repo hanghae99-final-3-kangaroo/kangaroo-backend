@@ -21,7 +21,7 @@ const calculateIssue = async () => {
       free_board.user_id,
       free_board.view_count
       + count(distinct free_comment.user_id) * 10
-      + count(distinct free_like.user_id) * 20
+      + count(distinct free_like.user_id) * 10
       as sum from free_board 
       left join free_comment
       on free_board.post_id = free_comment.post_id
