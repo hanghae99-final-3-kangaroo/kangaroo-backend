@@ -1,4 +1,10 @@
-const { free_board, univ_board, candidate } = require("../models");
+const {
+  free_board,
+  univ_board,
+  candidate,
+  sample_vote,
+  user,
+} = require("../models");
 
 const findAllPost = async (board) => {
   if (board == "free") board = free_board;
@@ -37,4 +43,21 @@ const findAllCandidate = async () => {
   return images;
 };
 
-module.exports = { findAllPost, findAllCandidate };
+const findVote = async (user_id) => {
+  return await sample_vote.findOne({ where: { user_id } });
+};
+
+const createVote = async (fields) => {
+  return await sample_vote.create(fields);
+};
+
+const updateSampleVote = async (user_id, sample_vote_id) => {
+  await user.update({ sample_vote_id }, { where: { user_id } });
+};
+module.exports = {
+  findAllPost,
+  findAllCandidate,
+  findVote,
+  createVote,
+  updateSampleVote,
+};

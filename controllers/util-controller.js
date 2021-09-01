@@ -2,6 +2,7 @@ const { userService, boardService, utilService } = require("../services");
 
 const fs = require("fs");
 const path = require("path");
+const { createVote } = require("../services/election-service");
 const appDir = path.dirname(require.main.filename);
 
 const searchPost = async (req, res, next) => {
@@ -147,8 +148,42 @@ const cleanUp = async (req, res, next) => {
   }
 };
 
+const doVote = async (req, res) => {
+  const { vote_num } = req.body;
+  const { user_id } = res.locals.user;
+  // const user_id = 1;
+  try {
+    // 이미 투표했는지 체크
+    const checkVote = await utilService.findVote(user_id);
+
+    if (checkVote) {
+      res.status(200).send({
+        ok: false,
+        message: "이미 투표하였습니다.",
+      });
+      return;
+    }
+
+    const createdVote = await utilService.createVote({
+      user_id,
+      vote_num,
+    });
+    await utilService.updateSampleVote(user_id, createdVote.sample_vote_id);
+    res.status(200).send({
+      ok: true,
+      result: createdVote,
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(400).send({
+      ok: false,
+      message: `${err}`,
+    });
+  }
+};
 module.exports = {
   searchPost,
   searchNickname,
   cleanUp,
+  doVote,
 };

@@ -12,6 +12,7 @@ module.exports = (sequelize, DataTypes) => {
       user.hasMany(models.univ_like, { foreignKey: "user_id" });
       user.hasMany(models.free_like, { foreignKey: "user_id" });
       user.hasMany(models.vote, { foreignKey: "user_id" });
+      user.hasOne(models.sample_vote, { foreignKey: "user_id" });
 
       user.belongsTo(models.country, { foreignKey: "country_id" });
       user.belongsTo(models.university, { foreignKey: "univ_id" });
@@ -39,6 +40,7 @@ module.exports = (sequelize, DataTypes) => {
       country_id: Sequelize.INTEGER,
       univ_id: Sequelize.INTEGER,
       provider: Sequelize.STRING,
+      sample_vote_id: Sequelize.INTEGER,
       refresh_token: Sequelize.STRING,
     },
     {
