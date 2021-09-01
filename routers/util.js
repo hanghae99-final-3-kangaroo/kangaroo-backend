@@ -3,9 +3,12 @@ const router = express.Router(); // 라우터라고 선언한다.
 
 const { utilController } = require("../controllers");
 const likeMiddleware = require("../middlewares/like-middleware");
+const authMiddleware = require("../middlewares/auth-middleware");
 const imgUploader = require("../middlewares/img-uploader");
 
 const schedule = require("node-schedule");
+
+router.post("/vote", authMiddleware, utilController.doVote);
 
 router.post("/image", imageUploader.single("img"), async (req, res) => {
   try {
