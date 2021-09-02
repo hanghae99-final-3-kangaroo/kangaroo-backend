@@ -41,7 +41,9 @@ https://www.notion.so/yzkim9501/1e66a5c0275a4f6aa29f75d34eb0b095#792c4fba41de496
 ## 3. 노션 설계 페이지
 https://yzkim9501.notion.site/UFO-3-b9bf655f15444276bdc50eda67336904
 
-## 4. 기술스택 및 라이브러리
+## 4. Front-end Repository
+https://github.com/hanghae99-final-3/UFO-frontend
+## 5. 기술스택 및 라이브러리
 
 |     종류      |  이름   |
 | :-----------: | :-----: |
