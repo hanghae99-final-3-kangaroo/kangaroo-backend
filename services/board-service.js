@@ -60,11 +60,12 @@ const getLikesFromPosts = async (like, user_id, posts, sort, keyword) => {
           post_id: posts["rows"][i].post_id,
         },
       });
-      // console.log(my_like);
+
       if (my_like) {
         is_like = true;
       }
     }
+
     all_like = await like.findAll({
       where: { post_id: posts["rows"][i].post_id },
     });
@@ -74,6 +75,7 @@ const getLikesFromPosts = async (like, user_id, posts, sort, keyword) => {
     };
   }
 
+  // 관련도순 검색시 입력받은 키워드를 기준으로 게시글의 제목, 내용을 split으로 분해하여 갯수를 세어 본다.
   if (sort == "relative") {
     for (let i = 0; i < posts["rows"].length; i++) {
       let rel = 0;
@@ -123,6 +125,7 @@ const findAllPost = async (
     group: ["post_id"],
   };
 
+  // 카테고리별 분류시 DB 조회 조건에 포함
   if (category !== undefined) options.where.category = category;
 
   if (board == "free") {
@@ -134,6 +137,8 @@ const findAllPost = async (
     options.include[0].model = univ_comment;
     board = univ_board;
   }
+
+  // 검색시 입력받은 키워드를 DB 조회 조건에 포함
   if (search == true) {
     const searchWhereOption = {
       [or]: [
@@ -146,8 +151,9 @@ const findAllPost = async (
   }
 
   const posts = await board.findAndCountAll(options);
-  posts["count"] = posts["count"].length;
+  posts["count"] = posts["count"].length; // 게시글의 갯수만 필요하기에, Count 갯수만 포함되도록 처리
 
+  // DB에 문자열로 저장된 이미지 리스트 값을 배열로 전환
   let img_list;
   for (i = 0; i < posts["rows"].length; i++) {
     img_list = posts["rows"][i]["img_list"];
@@ -159,6 +165,7 @@ const findAllPost = async (
     posts["rows"][i].img_list = img_list;
   }
 
+  // 페이지네이션을 위한 페이지 갯수 계산
   posts.countPage = Math.ceil(posts["count"] / pageSize);
 
   return posts;
@@ -183,6 +190,7 @@ const findOnePost = async (board, post_id) => {
     ],
   });
 
+  // DB에 문자열로 저장된 이미지 리스트 값을 배열로 전환
   if (result == null) {
     return;
   } else if (result["img_list"] != null) {
@@ -198,11 +206,13 @@ const findOnePost = async (board, post_id) => {
 const createPost = async (board, post) => {
   board = getBoardModel(board);
 
+  // 배열로 받아온 이미지 리스트 값을 문자열로 변환하여 DB에 저장
   if (post["img_list"] != undefined)
     post["img_list"] = post["img_list"].toString();
 
   const result = await board.create(post);
 
+  // DB에 문자열로 저장된 이미지 리스트 값을 배열로 전환
   if (result["img_list"] != null) {
     result["img_list"] = result["img_list"].split(",");
   } else {
@@ -216,6 +226,7 @@ const createPost = async (board, post) => {
 const updatePost = async (board, post, post_id) => {
   board = getBoardModel(board);
 
+  // 배열로 받아온 이미지 리스트 값을 문자열로 변환하여 DB에 저장
   if (post["img_list"] != undefined)
     post["img_list"] = post["img_list"].toString();
 
@@ -225,6 +236,7 @@ const updatePost = async (board, post, post_id) => {
 
   const newPost = await board.findOne({ where: { post_id } });
 
+  // DB에 문자열로 저장된 이미지 리스트 값을 배열로 전환
   if (newPost["img_list"] != null) {
     newPost["img_list"] = newPost["img_list"].split(",");
   } else {
@@ -358,6 +370,7 @@ const findFixedPost = async () => {
   });
   posts["count"] = posts["count"].length;
 
+  // DB에 문자열로 저장된 이미지 리스트 값을 배열로 전환
   let img_list;
   for (i = 0; i < posts["rows"].length; i++) {
     img_list = posts["rows"][i]["img_list"];

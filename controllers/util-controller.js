@@ -135,6 +135,7 @@ const cleanUp = async (req, res, next) => {
     const publicFolder = "./public/";
     const savedImages = fs.readdirSync(publicFolder);
 
+    // 프런트에서 랜덤생성된 이미지 이름에 /를 붙여 보내기에, /붙이는 처리하며 삭제할 이미지 조회
     const findDeleteImg = savedImages.filter(
       (x) => !useImages.includes("/" + x)
     );

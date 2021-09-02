@@ -6,6 +6,7 @@ const {
   user,
 } = require("../models");
 
+// 게시글 전체 조회
 const findAllPost = async (board) => {
   if (board == "free") board = free_board;
   if (board == "univ") board = univ_board;
@@ -17,6 +18,7 @@ const findAllPost = async (board) => {
 
   let images = [];
 
+  // DB에 문자열로 저장된 이미지 리스트 값을 배열로 전환
   for (let i = 0; i < posts.length; i++) {
     if (posts[i]["img_list"] != null) {
       images = images.concat(posts[i]["img_list"].split(","));
@@ -26,6 +28,7 @@ const findAllPost = async (board) => {
   return images;
 };
 
+// 후보자 전체 조회
 const findAllCandidate = async () => {
   const candidates = await candidate.findAll({
     raw: true,

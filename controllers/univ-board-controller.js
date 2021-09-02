@@ -4,6 +4,7 @@ const fs = require("fs");
 const path = require("path");
 const appDir = path.dirname(require.main.filename);
 
+// 게시글 생성
 const makePost = async (req, res, next) => {
   try {
     const { user_id } = res.locals.user;
@@ -53,6 +54,7 @@ const makePost = async (req, res, next) => {
   }
 };
 
+// 게시글 전체 조회
 const getPost = async (req, res, next) => {
   try {
     const { user_id, univ_id } = res.locals.user;
@@ -118,6 +120,7 @@ const getPost = async (req, res, next) => {
   }
 };
 
+// 대학 게시판 검색
 const searchUnivPost = async (req, res, next) => {
   try {
     const { univ_id, user_id } = res.locals.user;
@@ -173,6 +176,7 @@ const searchUnivPost = async (req, res, next) => {
   }
 };
 
+// 조회수 증가
 const getCountViewPost = async (req, res, next) => {
   try {
     const { post_id } = req.params;
@@ -191,6 +195,7 @@ const getCountViewPost = async (req, res, next) => {
   }
 };
 
+// 게시글 상세 조회
 const getOnePost = async (req, res, next) => {
   try {
     const { post_id } = req.params;
@@ -234,6 +239,7 @@ const getOnePost = async (req, res, next) => {
   }
 };
 
+// 게시글 수정
 const putPost = async (req, res, next) => {
   try {
     const { user_id } = res.locals.user;
@@ -280,6 +286,7 @@ const putPost = async (req, res, next) => {
   }
 };
 
+// 게시글 삭제
 const deletePost = async (req, res, next) => {
   try {
     const { user_id } = res.locals.user;
@@ -300,6 +307,7 @@ const deletePost = async (req, res, next) => {
       return res.status(401).send({ ok: false, message: "작성자가 아닙니다" });
     }
 
+    // 삭제하려는 게시글에 이미지 리스트가 존재한다면 public 폴더의 이미지 목록과 비교하여 삭제
     if (result["img_list"] && result["img_list"] != "") {
       for (let i = 0; i < result["img_list"].length; i++) {
         if (fs.existsSync(appDir + "/public/" + result["img_list"][i]))
@@ -321,6 +329,7 @@ const deletePost = async (req, res, next) => {
   }
 };
 
+// 게시글 좋아요 & 좋아요 취소
 const likePost = async (req, res, next) => {
   try {
     const { user_id } = res.locals.user;
@@ -348,6 +357,7 @@ const likePost = async (req, res, next) => {
   }
 };
 
+// 댓글 작성
 const makeComment = async (req, res, next) => {
   try {
     const { user_id } = res.locals.user;
@@ -382,6 +392,7 @@ const makeComment = async (req, res, next) => {
   }
 };
 
+// 댓글 전체 조회
 const getComment = async (req, res, next) => {
   try {
     const { post_id } = req.params;
@@ -410,6 +421,7 @@ const getComment = async (req, res, next) => {
   }
 };
 
+// 댓글 수정
 const putComment = async (req, res, next) => {
   try {
     const { user_id } = res.locals.user;
@@ -449,6 +461,7 @@ const putComment = async (req, res, next) => {
   }
 };
 
+// 댓글 삭제
 const deleteComment = async (req, res, next) => {
   try {
     const { user_id } = res.locals.user;
