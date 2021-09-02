@@ -20,7 +20,6 @@
 - 핫이슈 게시글(최상단 배치)
 - 회장 부회장 선거 기능
 - .edu 이메일 사용하는 사용자 인증
-- 소셜 로그인
 
 ## 프로젝트 기간
   2021/07/23 ~ 2021/09/03
@@ -59,9 +58,10 @@ https://yzkim9501.notion.site/UFO-3-b9bf655f15444276bdc50eda67336904
 |     cors     | Request Resource 제한 |
 |     swagger     | API 문서화 |
 |     eslint     | 코드 자동 포맷팅 |
-|     mocha     | 테스트 |
-|     passport     | 로그인 및 소셜 로그인 |
+|     bcrypt     | 패스워드 암호화 |
+|     multer     | 사진 업로드 |
 |     dotenv     | 환경변수 설정 |
 |     certbot     | https 적용 |
+|     nodemailer     | 회원인증 및 비밀번호 찾기 메일링 |
 |     RabbitMQ     | 메일링 서비스 비동기 메시지 큐 |
 |     node-schedule     | cron |
