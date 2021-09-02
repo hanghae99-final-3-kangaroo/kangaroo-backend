@@ -251,6 +251,7 @@ const delElection = async (req, res) => {
 
       myCandidate.destroy();
     }
+    await electionService.delComments(election_id);
     await electionService.delVotes(election_id);
     await electionService.delElection(election_id);
     res.status(200).send({

@@ -1,4 +1,11 @@
-const { university, election, candidate, country, vote } = require("../models");
+const {
+  university,
+  election,
+  candidate,
+  country,
+  vote,
+  election_comment,
+} = require("../models");
 const Sequelize = require("sequelize");
 
 const findUniv = async (univ_id) => {
@@ -60,6 +67,9 @@ const delVotes = async (election_id) => {
   await vote.destroy({ where: { election_id } });
 };
 
+const delComments = async (election_id) => {
+  await election_comment.destroy({ where: { post_id: election_id } });
+};
 const delElection = async (election_id) => {
   await election.destroy({ where: { election_id } });
 };
@@ -99,4 +109,5 @@ module.exports = {
   findVote,
   createVote,
   countVote,
+  delComments,
 };
