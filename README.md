@@ -151,7 +151,7 @@ https://github.com/hanghae99-final-3/UFO-frontend
     
     
 
-### 이미지 처리
+   ### 이미지 처리
     
     ![image](https://user-images.githubusercontent.com/81303869/132342039-087d80fd-39c1-4992-8010-4a989a5a4e87.png)
 
