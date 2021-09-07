@@ -199,3 +199,17 @@ https://github.com/hanghae99-final-3/UFO-frontend
 
 
  ### 예외처리
+
+
+## 6. 최종 성과
+2021 / 09 / 03 기준
+![image](https://user-images.githubusercontent.com/81303869/132345093-40133d36-d847-4b3a-9299-1fc614ec0086.png)
+
+![image](https://user-images.githubusercontent.com/81303869/132345197-a3af1843-460f-4ca9-b018-8f9d1affdb21.png)
+광고 게시 나흘간 538회의 게시글 참여가 발생
+80명의 실제 가입과 대학 인증
+127개의 게시글 작성
+
+대학 게시판 조회수보다 1.2배 많은 투표함 조회수.
+한인회 회장 선거 시, 일원화된 선거 기능을 제공하는 곳이 없다는 점을 기획 단계부터 고려하였고
+선거 기능을 서비스로 제공하려는 기획이 적중한 결과라 생각.
