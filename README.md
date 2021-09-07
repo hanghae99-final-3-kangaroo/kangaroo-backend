@@ -74,7 +74,7 @@ https://github.com/hanghae99-final-3/UFO-frontend
 |     RabbitMQ     | 메일링 서비스 비동기 메시지 큐 |
 |     node-schedule     | cron |
 
-## 기술적 챌린지
+## 6. 기술적 챌린지
 
 ### 인기 게시글 구현
 
@@ -148,6 +148,8 @@ https://github.com/hanghae99-final-3/UFO-frontend
     시작 시간을 변수에 지정하고 ( 24시간 )
 
     글 검색 결과가 4개 이상이 나올떄까지 반복하여 시간을 증가하며 검색 ( 최대7일 )
+    
+    
 
     ### 이미지 처리
     
@@ -180,12 +182,18 @@ https://github.com/hanghae99-final-3/UFO-frontend
     };
     ```
     
+    
+    
 ### Jenkins 자동 배포
 1차 배포 후 각종 버그 수정, 프런트와의 기능 수정 사항들이 넘쳐나고
 잦은 배포로 인한 시간소모가 상당하다는것을 인지하여 CI/CD 구축하기로 결정
 그 결과, 시간적 물리적 편의성의 확보되었으며, 나아가 제스트 라이브러리를 사용하여 젠킨스와 연동, 테스트 자동화까지 구현.
 ![image](https://user-images.githubusercontent.com/81303869/132342142-f1c2e047-66c1-42db-86fc-e02c36e06042.png)
 
+
+
  ### MVC Pattern
+
+
 
  ### 예외처리
