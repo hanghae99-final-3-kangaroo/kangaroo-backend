@@ -14,6 +14,7 @@ https://ufo.town/
 - .edu 이메일 사용하는 사용자 메일 인증 & 환영가입 메일
 
 ![image](https://user-images.githubusercontent.com/81303869/132338263-4693edff-6ed5-40d7-a1fe-122302ac0069.png)
+https://www.youtube.com/watch?v=fl2gmCqNQ_4
 
 ### 문제 인식
 - 2021년 9월 현재, 유학생 커뮤니티가 존재하지 않음.
